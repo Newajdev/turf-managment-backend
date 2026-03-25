@@ -1,5 +1,7 @@
 import express, { Application, Request, Response } from "express";
 import { IndexRoutes } from "./app/routes";
+import { prisma } from "./app/lib/prisma";
+
 
 
 const app: Application = express();
@@ -14,6 +16,12 @@ app.use("/api/v1", IndexRoutes);
 
 // base route
 app.get("/", async (req: Request, res: Response) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const SportsType = await prisma.sportType.create({
+    data: {
+      title: "Football"
+    }
+  })
   res.status(201).json({
     success: true,
     message: "",
