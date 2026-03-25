@@ -1,0 +1,27 @@
+enum Role {
+  SYSTEM_ADMIN
+  TURF_OWNER
+  PLAYER
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  DELETED
+}
+
+
+enum BookingStatus {
+  CONFIRMED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+

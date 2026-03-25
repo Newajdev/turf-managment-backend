@@ -5,7 +5,7 @@ model SportType {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  // turfs       Turf[]
+  turfs       Turf[]
 
   @@map("sport_type")
 }

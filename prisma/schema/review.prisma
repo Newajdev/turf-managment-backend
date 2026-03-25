@@ -1,0 +1,20 @@
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String?
+  
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Restrict)
+  
+  turfId    String
+  turf      Turf     @relation(fields: [turfId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([playerId, turfId])
+  @@map("review")
+}

@@ -7,7 +7,7 @@ model MasterSlot {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // turfSlots TurfSlot[]
+  turfSlots TurfSlot[]
 
   @@map("master_slot")
 }
