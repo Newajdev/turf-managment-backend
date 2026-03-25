@@ -13,26 +13,24 @@ types, turf owners, and master slots.
 The system uses Role-Based Access Control (RBAC) and secure
 authentication.
 
----
+------------------------------------------------------------------------
 
 ## Technology Stack
 
-Layer Technology
-
----
-
-Runtime Node.js
-Framework Express.js
-Language TypeScript
-ORM Prisma ORM
-Database PostgreSQL
-Authentication Better Auth + JWT
-Validation Zod
-Email Service Nodemailer
+  Layer            Technology
+  ---------------- -------------------
+  Runtime          Node.js
+  Framework        Express.js
+  Language         TypeScript
+  ORM              Prisma ORM
+  Database         PostgreSQL
+  Authentication   Better Auth + JWT
+  Validation       Zod
+  Email Service    Nodemailer
 
 Architecture Pattern: Controller → Service → Repository
 
----
+------------------------------------------------------------------------
 
 ## User Roles
 
@@ -158,8 +156,6 @@ record created - Payment completed - Slot becomes booked
 ---
 
 ## Booking Status
-
-- PENDING
 - CONFIRMED
 - REJECTED
 - CANCELLED
@@ -183,7 +179,7 @@ Payment Status: - PENDING - SUCCESS - FAILED - REFUNDED
 
 Possible Payment Methods: - SSLCommerz - bKash - Nagad - Card
 
----
+------------------------------------------------------------------------
 
 ## Turf Reviews & Ratings
 
@@ -197,7 +193,7 @@ createdAt
 
 Rating Range: 1--5 stars
 
----
+------------------------------------------------------------------------
 
 ## Admin Analytics Dashboard
 
@@ -210,7 +206,7 @@ Booking Growth
 Example Data: - totalUsers - totalBookings - totalRevenue -
 monthlyBookings - topTurfs
 
----
+------------------------------------------------------------------------
 
 ## Booking History
 
@@ -225,51 +221,51 @@ Revenue from bookings
 Fields: - id - userId - turfId - slotId - date - status -
 paymentStatus - createdAt
 
----
+------------------------------------------------------------------------
 
 ## Database Entities
 
-- User
-- SportType
-- Turf
-- MasterSlot
-- TurfSlot
-- Booking
-- Payment
-- Review
-- Notification
+-   User
+-   SportType
+-   Turf
+-   MasterSlot
+-   TurfSlot
+-   Booking
+-   Payment
+-   Review
+-   Notification
 
----
+------------------------------------------------------------------------
 
 ## Business Rules
 
-- Turf owners cannot self-register
-- Only turf owner can create turfs
-- System admin creates master slots
-- Turf owners select slots
-- Turf owners set slot prices
-- Double booking is not allowed
-- Booking can be cancelled before 24 hours
-- Turf owners can reject bookings
-- Email notifications must be sent
+-   Turf owners cannot self-register
+-   Only turf owner can create turfs
+-   System admin creates master slots
+-   Turf owners select slots
+-   Turf owners set slot prices
+-   Double booking is not allowed
+-   Booking can be cancelled before 24 hours
+-   Turf owners can reject bookings
+-   Email notifications must be sent
 
----
+------------------------------------------------------------------------
 
 ## Backend Modules
 
-- auth
-- user
-- sportType
-- turf
-- masterSlot
-- turfSlot
-- booking
-- payment
-- review
-- notification
-- analytics
+-   auth
+-   user
+-   sportType
+-   turf
+-   masterSlot
+-   turfSlot
+-   booking
+-   payment
+-   review
+-   notification
+-   analytics
 
----
+------------------------------------------------------------------------
 
 ## Suggested Folder Structure
 
