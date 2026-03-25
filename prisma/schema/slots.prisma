@@ -1,0 +1,13 @@
+model MasterSlot {
+  id        String   @id @default(cuid())
+  startTime String   // e.g. "06:00"
+  endTime   String   // e.g. "07:00"
+  duration  Int      // duration in minutes
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  turfSlots TurfSlot[]
+
+  @@map("master_slot")
+}

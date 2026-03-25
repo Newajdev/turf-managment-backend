@@ -1,0 +1,23 @@
+model Turf {
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  description String?
+  images       String[]
+  
+  sportTypeId String
+  sportType   SportType @relation(fields: [sportTypeId], references: [id], onDelete: Cascade)
+  
+  ownerId     String    @unique
+  owner       TurfOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  turfSlots   TurfSlot[]
+  bookings    Booking[]
+  reviews     Review[]
+  
+  @@index([address, sportTypeId])
+  @@map("turf")
+}
