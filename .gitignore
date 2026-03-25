@@ -5,6 +5,6 @@ node_modules
 dist
 .vscode
 
-# /src/generated
+/src/generated
 
 /generated/prisma
