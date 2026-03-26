@@ -21,8 +21,6 @@ router.delete(
   TurfController.deleteImage,
 );
 
-
-
 router.post(
   "/",
   checkAuth(Role.TURF_OWNER),

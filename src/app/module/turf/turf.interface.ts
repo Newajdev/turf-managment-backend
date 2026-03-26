@@ -27,5 +27,4 @@ export interface ITurf {
   turfStatus?: TurfStatus;
   maintenanceDetails?: ITurfMaintenancePayload;
   sportsTypes?: string[];
-  turfSlots?: ITurfSlotPayload[];
 }

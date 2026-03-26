@@ -64,3 +64,11 @@ enum ReportReason {
   OVERPRICED
   OTHER
 }
+
+enum CustomSlotStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}

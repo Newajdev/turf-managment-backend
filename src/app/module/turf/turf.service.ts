@@ -18,32 +18,27 @@ const createTurf = async (userId: string, payload: ITurf) => {
   });
 
   if (existingTurf) {
-    throw new AppError(status.CONFLICT, "One Turf Owner can only create one Turf!");
+    throw new AppError(
+      status.CONFLICT,
+      "One Turf Owner can only create one Turf!",
+    );
   }
 
-  const { sportsTypes, turfSlots, ...turfData } = payload;
+  const { sportsTypes, ...turfData } = payload;
 
+  const sportsTypesData = sportsTypes?.map((id) => ({ id }));
 
- const sportsTypesData = sportsTypes?.map((id) => ({ id }));
- const turfSlotsData = turfSlots?.map((slot) => ({
-   slotId: slot.slotId,
-   price: slot.price,
- }));
-
- const result = await prisma.turf.create({
-   data: {
-     ...turfData,
-     ownerId: turfOwner.id,
-     sportTypes: sportsTypesData && { connect: sportsTypesData },
-     turfSlots: turfSlotsData && { create: turfSlotsData },
-   },
-   include: {
-     sportTypes: true,
-     turfSlots: true,
-     owner:true
-   }
- });
-
+  const result = await prisma.turf.create({
+    data: {
+      ...turfData,
+      ownerId: turfOwner.id,
+      sportTypes: sportsTypesData && { connect: sportsTypesData },
+    },
+    include: {
+      sportTypes: true,
+      owner: true,
+    },
+  });
 
   return result;
 };
@@ -66,8 +61,8 @@ const getSingleTurf = async (id: string) => {
       sportTypes: true,
       turfSlots: {
         include: {
-            slot: true
-        }
+          slot: true,
+        },
       },
       reviews: true,
     },
@@ -75,9 +70,12 @@ const getSingleTurf = async (id: string) => {
   return result;
 };
 
-
-const updateTurf = async (userId: string, id: string, payload: Partial<ITurf>) => {
-  const { maintenanceDetails, sportsTypes, turfSlots, ...rest } = payload;
+const updateTurf = async (
+  userId: string,
+  id: string,
+  payload: Partial<ITurf>,
+) => {
+  const { maintenanceDetails, sportsTypes, ...rest } = payload;
 
   const turfOwner = await prisma.turfOwner.findUnique({
     where: { userId },
@@ -110,24 +108,13 @@ const updateTurf = async (userId: string, id: string, payload: Partial<ITurf>) =
     });
   }
 
+  const sportsTypesData = sportsTypes?.map((id) => ({ id }));
+
   const result = await prisma.turf.update({
     where: { id },
     data: {
       ...rest,
-      sportTypes: sportsTypes
-        ? {
-            set: sportsTypes.map((id) => ({ id })),
-          }
-        : undefined,
-      turfSlots: turfSlots
-        ? {
-            deleteMany: {},
-            create: turfSlots.map((slot) => ({
-              slotId: slot.slotId,
-              price: Number(slot.price),
-            })),
-          }
-        : undefined,
+      sportTypes: sportsTypes && { connect: sportsTypesData },
     },
   });
 
@@ -163,15 +150,14 @@ const deleteTurf = async (userId: string, id: string) => {
 };
 
 const addImagesToTurf = async (id: string, newImageUrls: string[]) => {
-
   const turfOwner = await prisma.turfOwner.findUnique({
     where: {
-      userId: id
+      userId: id,
     },
     include: {
-      turf: true
-    }
-  })
+      turf: true,
+    },
+  });
 
   if (!turfOwner) {
     throw new AppError(status.NOT_FOUND, "Turf Owner profile not found!");
@@ -186,9 +172,9 @@ const addImagesToTurf = async (id: string, newImageUrls: string[]) => {
   }
 
   const turf = await prisma.turf.findUniqueOrThrow({
-    where: { 
-      id: turfOwner.turf.id
-     },
+    where: {
+      id: turfOwner.turf.id,
+    },
   });
 
   const updatedImages = [...turf.images, ...newImageUrls];
@@ -223,8 +209,6 @@ const removeImageFromTurf = async (id: string, imageUrl: string) => {
 
   return result;
 };
-
-
 
 export const TurfService = {
   createTurf,

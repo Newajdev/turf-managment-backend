@@ -16,10 +16,6 @@ const createTurfSchema = z.object({
   isVerifiedEmail: z.boolean().optional(),
   turfStatus: z.nativeEnum(TurfStatus).optional(),
   sportsTypes: z.array(z.string()).optional(),
-  turfSlots: z.array(z.object({
-    slotId: z.string(),
-    price: z.number().min(0),
-  })).optional(),
 });
 
 const updateTurfSchema = z.object({
@@ -42,10 +38,6 @@ const updateTurfSchema = z.object({
     notice: z.string(),
   }).optional(),
   sportsTypes: z.array(z.string()).optional(),
-  turfSlots: z.array(z.object({
-    slotId: z.string(),
-    price: z.number().min(0),
-  })).optional(),
 });
 
 export const TurfValidations = {

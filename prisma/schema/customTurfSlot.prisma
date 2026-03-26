@@ -4,10 +4,14 @@ model CustomTurfSlot {
   endTime   String
   duration  Int
   price     Float
-  isActive  Boolean @default(true)
+  isBooked  Boolean @default(false)
+  status    CustomSlotStatus @default(PENDING)
 
   turfId String
   turf   Turf   @relation(fields: [turfId], references: [id], onDelete: Cascade)
+  
+  playerId String
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

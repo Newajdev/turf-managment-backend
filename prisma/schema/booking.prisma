@@ -1,6 +1,6 @@
 model Booking {
   id     String        @id @default(uuid(7))
-  date   DateTime      @unique @db.Date
+  date   DateTime      @db.Date
   status BookingStatus @default(CONFIRMED)
 
   playerId String
@@ -9,11 +9,11 @@ model Booking {
   turfId String
   turf   Turf   @relation(fields: [turfId], references: [id], onDelete: Restrict)
 
-  turfSlotId String   @unique
-  turfSlot   TurfSlot @relation(fields: [turfSlotId], references: [id], onDelete: Restrict)
+  turfSlotId String?
+  turfSlot   TurfSlot? @relation(fields: [turfSlotId], references: [id], onDelete: Restrict)
 
-  customSlotId String         @unique
-  customSlot   CustomTurfSlot @relation(fields: [customSlotId], references: [id], onDelete: Restrict)
+  customSlotId String?
+  customSlot   CustomTurfSlot? @relation(fields: [customSlotId], references: [id], onDelete: Restrict)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
