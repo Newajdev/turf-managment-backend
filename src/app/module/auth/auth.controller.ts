@@ -7,23 +7,38 @@ import { tokenUtils } from "../../utils/token";
 
 const registerPlayer = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.registerPlayer(req.body);
+  const { accessToken, refreshToken, betterAuthToken, user, player } = result;
+
+  tokenUtils.setAccessTokenCookie(res, accessToken);
+  tokenUtils.setRefreshTokenCookie(res, refreshToken);
+  if (betterAuthToken) {
+    tokenUtils.setBetterAuthSessionCookie(res, betterAuthToken);
+  }
 
   sendResponse(res, {
     httpStatusCode: status.CREATED,
     success: true,
     message: "Player registered successfully",
-    data: result,
+    data: {
+      user,
+      player,
+      betterAuthToken,
+      accessToken,
+      refreshToken,
+    },
   });
 });
 
 const createTurfOwner = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.createTurfOwner(req.body);
+  
 
   sendResponse(res, {
     httpStatusCode: status.CREATED,
     success: true,
     message: "Turf Owner created successfully",
-    data: result,
+    data: result
+    ,
   });
 });
 

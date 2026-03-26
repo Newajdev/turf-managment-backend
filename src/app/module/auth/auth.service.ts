@@ -42,11 +42,26 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
       return playerTx
     });
 
-    return {
-      user: data.user,
-      token: data.token,
-      player,
-    };
+      const jwtPayload = {
+        userId: data.user.id,
+        email: data.user.email,
+        role: data.user.role,
+        name: data.user.name,
+        status: data.user.userStatus,
+        isDeleted: data.user.isDeleted,
+        emailVerified: data.user.emailVerified,
+      };
+
+      const accessToken = tokenUtils.getAccessToken(jwtPayload);
+      const refreshToken = tokenUtils.getRefreshToken(jwtPayload);
+
+      return {
+        user: data.user,
+        betterAuthToken: data.token,
+        accessToken,
+        refreshToken,
+        player,
+      };
 
   } catch (error) {
     await prisma.user.delete({
@@ -100,10 +115,11 @@ const createTurfOwner = async (payload: ICreateTurfOwner) => {
       return turfOnwerTx;
     });
 
-    return {
-      user: data.user,
-      turfOwner,
-    };
+
+      return {
+        user: data.user,
+        turfOwner,
+      };
 
   } catch (error) {
     
