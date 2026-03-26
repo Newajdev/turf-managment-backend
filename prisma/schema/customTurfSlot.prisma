@@ -1,0 +1,19 @@
+model CustomTurfSlot {
+  id        String  @id @default(uuid())
+  startTime String
+  endTime   String
+  duration  Int
+  price     Float
+  isActive  Boolean @default(true)
+
+  turfId String
+  turf   Turf   @relation(fields: [turfId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings Booking[]
+
+  @@index([turfId], map: "idx_customSlot_turfId")
+  @@map("custom_turf_slot")
+}

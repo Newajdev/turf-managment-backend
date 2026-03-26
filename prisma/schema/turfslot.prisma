@@ -14,7 +14,6 @@ model TurfSlot {
 
   bookings Booking[]
 
- 
   @@index([turfId], map: "idx_turfslot_turfId")
   @@index([slotId], map: "idx_turfslot_slotId")
   @@map("turf_slot")

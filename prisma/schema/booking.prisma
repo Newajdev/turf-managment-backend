@@ -12,6 +12,9 @@ model Booking {
   turfSlotId String   @unique
   turfSlot   TurfSlot @relation(fields: [turfSlotId], references: [id], onDelete: Restrict)
 
+  customSlotId String         @unique
+  customSlot   CustomTurfSlot @relation(fields: [customSlotId], references: [id], onDelete: Restrict)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

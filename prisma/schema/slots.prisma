@@ -1,6 +1,6 @@
 model MasterSlot {
-  id        String @id @default(cuid())
-  slotType SlotType
+  id        String   @id @default(cuid())
+  slotType  SlotType
   startTime String
   endTime   String
   duration  Int
@@ -10,6 +10,6 @@ model MasterSlot {
 
   turfSlots TurfSlot[]
 
-  @@unique([startTime, endTime], name:"uniqe_start_end_time")
+  @@unique([startTime, endTime], name: "uniqe_start_end_time")
   @@map("master_slot")
 }
