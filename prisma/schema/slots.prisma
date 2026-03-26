@@ -3,12 +3,13 @@ model MasterSlot {
   slotType SlotType
   startTime String
   endTime   String
-  duration  Int?
+  duration  Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   turfSlots TurfSlot[]
 
+  @@unique([startTime, endTime], name:"uniqe_start_end_time")
   @@map("master_slot")
 }

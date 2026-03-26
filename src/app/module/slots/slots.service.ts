@@ -1,23 +1,33 @@
-import { addMinutes, differenceInMinutes, parse, format } from "date-fns";
+import { addMinutes, differenceInMinutes, format,  addDays } from "date-fns";
 import { prisma } from "../../lib/prisma";
 import { ICreateMasterSlotPayload, IMasterSlot } from "./slots.interface";
+import AppError from "../../errorHelpers/AppError";
+import { parseTime } from "./slot.utils";
+import status from "http-status";
+
 
 const createMasterSlot = async (payload: ICreateMasterSlotPayload) => {
   const { startTime, endTime, slotType, interval } = payload;
 
   const results = [];
 
-  // Use a fixed date for parsing times to calculate duration within a single day
   const referenceDate = new Date();
-  const start = parse(startTime, "hh:mm a", referenceDate);
-  const end = parse(endTime, "hh:mm a", referenceDate);
+  const start = parseTime(startTime, referenceDate);
+  let end = parseTime(endTime, referenceDate);
+
+  if (!start || !end) {
+    throw new AppError(400, "Invalid time format. Please use 'HH:mm' or 'hh:mm AM/PM'.");
+  }
+
+  if (end < start) {
+    end = addDays(end, 1);
+  }
 
   if (interval) {
     let currentStart = start;
     while (currentStart < end) {
       const nextEnd = addMinutes(currentStart, interval);
 
-      // Stop if next interval exceeds the end time
       if (nextEnd > end) break;
 
       const slotStartTime = format(currentStart, "hh:mm a");
@@ -57,27 +67,53 @@ const getAllMasterSlots = async () => {
 };
 
 const getSingleMasterSlot = async (id: string) => {
-  const result = await prisma.masterSlot.findUniqueOrThrow({
+  const result = await prisma.masterSlot.findUnique({
     where: { id },
   });
+  if (!result) {
+    throw new AppError(status.NOT_FOUND, "Slot Not Found")
+  }
   return result;
 };
 
 const updateMasterSlot = async (id: string, payload: Partial<IMasterSlot>) => {
   const { startTime, endTime } = payload;
 
+  const existingSlot = await prisma.masterSlot.findUnique({
+    where: { id },
+  });
+
+  if (!existingSlot) {
+    throw new AppError(status.NOT_FOUND, "Slot Not Found")
+  }
+
   if (startTime || endTime) {
-    const existingSlot = await prisma.masterSlot.findUniqueOrThrow({
-      where: { id },
+
+    const duplicateSlot = await prisma.masterSlot.findUnique({
+      where: {
+        uniqe_start_end_time: {
+          startTime: startTime as string,
+          endTime: endTime as string
+        }
+      },
     });
 
-    const newStartTime = startTime || existingSlot.startTime;
-    const newEndTime = endTime || existingSlot.endTime;
+    if (duplicateSlot && duplicateSlot.id !== id) {
+      throw new AppError(status.BAD_REQUEST, "Slot Already Exists");
+    }
 
     const referenceDate = new Date();
-    const start = parse(newStartTime, "hh:mm a", referenceDate);
-    const end = parse(newEndTime, "hh:mm a", referenceDate);
-    
+    const start = parseTime(startTime as string, referenceDate);
+    let end = parseTime(endTime as string, referenceDate);
+
+    if (!start || !end) {
+      throw new AppError(400, "Invalid time format. Please use 'HH:mm' or 'hh:mm AM/PM'.");
+    }
+
+    if (end < start) {
+      end = addDays(end, 1);
+    }
+
     payload.duration = differenceInMinutes(end, start);
   }
 
@@ -89,6 +125,13 @@ const updateMasterSlot = async (id: string, payload: Partial<IMasterSlot>) => {
 };
 
 const deleteMasterSlot = async (id: string) => {
+  const existingSlot = await prisma.masterSlot.findUnique({
+    where: { id },
+  });
+
+  if (!existingSlot) {
+    throw new AppError(status.NOT_FOUND, "Slot Not Found")
+  }
   const result = await prisma.masterSlot.delete({
     where: { id },
   });

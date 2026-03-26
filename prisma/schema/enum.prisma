@@ -30,3 +30,19 @@ enum SlotType {
   EVENING
   NIGHT
 }
+
+enum WeeklyOffDay {
+  FRIDAY
+  SATURDAY
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+}
+
+enum TurfStatus {
+  ACTIVE
+  DISABLED
+  MAINTENANCE
+}

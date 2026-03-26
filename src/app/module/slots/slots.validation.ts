@@ -11,10 +11,8 @@ const createMasterSlotSchema = z.object({
 });
 
 const updateMasterSlotSchema = z.object({
-  slotType: z.nativeEnum(SlotType).optional(),
   startTime: z.string().optional(),
   endTime: z.string().optional(),
-  duration: z.number().optional(),
 });
 
 export const MasterSlotValidations = {

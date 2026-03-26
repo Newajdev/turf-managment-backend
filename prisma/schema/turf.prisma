@@ -2,8 +2,22 @@ model Turf {
   id          String   @id @default(cuid())
   name        String
   address     String
+  contactNumber String[]
+  emailAddress String?
+  isVerifiedEmail Boolean @default(false)
   description String?
   images      String[]
+  openingTime String
+  closingTime String
+  weeklyOffDays WeeklyOffDay[]
+  isAlwaysOpen Boolean @default(false)
+  saveCount Int @default(0)
+  turfStatus TurfStatus @default(ACTIVE)
+  rating       Decimal @db.Decimal(3,2) @default(0)
+reviewCount  Int     @default(0)
+hourlyRate  Decimal @db.Decimal(3,2) @default(0)
+
+
 
 
   ownerId String    @unique
