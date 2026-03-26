@@ -10,7 +10,6 @@ enum UserStatus {
   DELETED
 }
 
-
 enum BookingStatus {
   CONFIRMED
   REJECTED
@@ -24,4 +23,3 @@ enum PaymentStatus {
   FAILED
   REFUNDED
 }
-

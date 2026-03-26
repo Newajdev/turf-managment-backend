@@ -1,17 +1,13 @@
 import { z } from 'zod';
 
 export const sportTypeValidationSchema = z.object({
-    body: z.object({
-        title: z.string('Title is required'),
-        icon: z.string( 'Icon is required'),
-    }),
+    title: z.string({ message: 'Title is required' }),
+    icon: z.string({ message: 'Icon is required' }).url(),
 });
 
 export const updateSportTypeValidationSchema = z.object({
-    body: z.object({
-        title: z.string().optional(),
-        icon: z.string().optional(),
-    }),
+    title: z.string().optional(),
+    icon: z.string().url().optional(),
 });
 
 export const SportTypeValidations = {

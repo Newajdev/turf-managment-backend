@@ -1,11 +1,11 @@
 model SportType {
-  id          String   @id @default(cuid())
-  title       String @unique
-  icon  String? @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  turfs       Turf[]
+  id        String   @id @default(cuid())
+  title     String   @unique
+  icon      String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  turfs Turf[]
 
   @@map("sport_type")
 }

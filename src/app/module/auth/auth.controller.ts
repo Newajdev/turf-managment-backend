@@ -1,56 +1,44 @@
-import { Request, Response } from 'express';
-import { catchAsync } from '../../shared/catchAsync';
-import { sendResponse } from '../../shared/sendResponse';
-import { AuthService } from './auth.service';
-import { AuthValidations } from './auth.validation';
+import { Request, Response } from "express";
+import { catchAsync } from "../../shared/catchAsync";
+import { sendResponse } from "../../shared/sendResponse";
+import { AuthService } from "./auth.service";
+import status from "http-status";
 
 const registerPlayer = catchAsync(async (req: Request, res: Response) => {
-    const validatedData = AuthValidations.registerPlayerSchema.parse({
-        body: req.body,
-    });
+  const result = await AuthService.registerPlayer(req.body);
 
-    const result = await AuthService.registerPlayer(validatedData.body);
-
-    sendResponse(res, {
-        httpStatusCode: 201,
-        success: true,
-        message: 'Player registered successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    httpStatusCode: status.CREATED,
+    success: true,
+    message: "Player registered successfully",
+    data: result,
+  });
 });
 
 const createTurfOwner = catchAsync(async (req: Request, res: Response) => {
-    const validatedData = AuthValidations.createTurfOwnerSchema.parse({
-        body: req.body,
-    });
+  const result = await AuthService.createTurfOwner(req.body);
 
-    const result = await AuthService.createTurfOwner(validatedData.body);
-
-    sendResponse(res, {
-        httpStatusCode: 201,
-        success: true,
-        message: 'Turf Owner created successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    httpStatusCode: status.CREATED,
+    success: true,
+    message: "Turf Owner created successfully",
+    data: result,
+  });
 });
 
 const login = catchAsync(async (req: Request, res: Response) => {
-    const validatedData = AuthValidations.loginSchema.parse({
-        body: req.body,
-    });
+  const result = await AuthService.login(req.body);
 
-    const result = await AuthService.login(validatedData.body);
-
-    sendResponse(res, {
-        httpStatusCode: 200,
-        success: true,
-        message: 'Logged in successfully',
-        data: result,
-    });
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Logged in successfully",
+    data: result,
+  });
 });
 
 export const AuthController = {
-    registerPlayer,
-    createTurfOwner,
-    login,
+  registerPlayer,
+  createTurfOwner,
+  login,
 };

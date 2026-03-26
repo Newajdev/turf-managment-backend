@@ -1,24 +1,24 @@
 model Booking {
-  id         String        @id @default(cuid())
-  date       DateTime      @db.Date @unique
-  status     BookingStatus @default(CONFIRMED)
-  
-  playerId   String
-  player     Player        @relation(fields: [playerId], references: [id], onDelete: Restrict)
-  
-  turfId     String
-  turf       Turf          @relation(fields: [turfId], references: [id], onDelete: Restrict)
-  
-  turfSlotId String @unique
-  turfSlot   TurfSlot      @relation(fields: [turfSlotId], references: [id], onDelete: Restrict)
-  
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
+  id     String        @id @default(cuid())
+  date   DateTime      @unique @db.Date
+  status BookingStatus @default(CONFIRMED)
 
-  payment    Payment?
-  review     Review?
+  playerId String
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Restrict)
 
+  turfId String
+  turf   Turf   @relation(fields: [turfId], references: [id], onDelete: Restrict)
 
-  @@index([playerId, turfId])
+  turfSlotId String   @unique
+  turfSlot   TurfSlot @relation(fields: [turfSlotId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payment Payment?
+  review  Review?
+
+  @@index([playerId], map: "idx_booking_playerId")
+  @@index([turfId], map: "idx_turfId")
   @@map("booking")
 }

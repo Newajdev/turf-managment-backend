@@ -3,21 +3,20 @@ model Turf {
   name        String
   address     String
   description String?
-  images       String[]
-  
-  sportTypeId String
-  sportType   SportType @relation(fields: [sportTypeId], references: [id], onDelete: Cascade)
-  
-  ownerId     String    @unique
-  owner       TurfOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  images      String[]
 
-  turfSlots   TurfSlot[]
-  bookings    Booking[]
-  reviews     Review[]
-  
-  @@index([address, sportTypeId])
+
+  ownerId String    @unique
+  owner   TurfOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sportTypes SportType[]
+  turfSlots TurfSlot[]
+  bookings  Booking[]
+  reviews   Review[]
+
+  @@index([address], map: "idx_turf_address")
   @@map("turf")
 }

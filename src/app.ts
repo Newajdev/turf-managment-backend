@@ -1,6 +1,8 @@
 import express, { Application, Request, Response } from "express";
 import { IndexRoutes } from "./app/routes";
-import { prisma } from "./app/lib/prisma";
+import { sendResponse } from "./app/shared/sendResponse";
+import { notFound } from "./app/middleware/notFound";
+import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 
 
 
@@ -16,16 +18,14 @@ app.use("/api/v1", IndexRoutes);
 
 // base route
 app.get("/", async (req: Request, res: Response) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const SportsType = await prisma.sportType.create({
-    data: {
-      title: "Football"
-    }
-  })
-  res.status(201).json({
+  sendResponse(res, {
+    httpStatusCode: 200,
     success: true,
-    message: "",
+    message: "Turf Backend Api is Running.",
   });
 });
+
+app.use(globalErrorHandler)
+app.use(notFound)
 
 export default app;

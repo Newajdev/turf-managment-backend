@@ -1,9 +1,9 @@
 model MasterSlot {
-  id        String   @id @default(cuid())
-  startTime String   
-  endTime   String   
-  duration  Int      
-  
+  id        String @id @default(cuid())
+  startTime String
+  endTime   String
+  duration  Int
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

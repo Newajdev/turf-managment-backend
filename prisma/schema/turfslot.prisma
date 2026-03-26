@@ -1,21 +1,21 @@
 model TurfSlot {
-  id        String   @id @default(uuid())
-  price     Float
-  isActive  Boolean  @default(true)
-  
-  turfId    String
-  turf      Turf     @relation(fields: [turfId], references: [id], onDelete: Cascade)
-  
-  slotId    String
-  slot      MasterSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
-  
+  id       String  @id @default(uuid())
+  price    Float
+  isActive Boolean @default(true)
+
+  turfId String
+  turf   Turf   @relation(fields: [turfId], references: [id], onDelete: Cascade)
+
+  slotId String
+  slot   MasterSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  bookings  Booking[]
+  bookings Booking[]
 
-  @@unique([turfId, slotId])
-  @@index([turfId])
-  @@index([slotId])
+ 
+  @@index([turfId], map: "idx_turfslot_turfId")
+  @@index([slotId], map: "idx_turfslot_slotId")
   @@map("turf_slot")
 }

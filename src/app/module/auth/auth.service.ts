@@ -1,80 +1,126 @@
-import { Role } from '../../../generated/prisma/enums';
-import { auth } from '../../lib/auth';
-import { prisma } from '../../lib/prisma';
-import { IRegisterPlayer, ICreateTurfOwner, ILogin } from './auth.interface';
+import { Role, UserStatus } from "../../../generated/prisma/enums";
+import { auth } from "../../lib/auth";
+import { prisma } from "../../lib/prisma";
+import { IRegisterPlayer, ICreateTurfOwner, ILogin } from "./auth.interface";
 
 const registerPlayer = async (payload: IRegisterPlayer) => {
-    const { name, email, password} = payload;
+  const { name, email, password } = payload;
 
-    const authResponse = await auth.api.signUpEmail({
-        body: {
-            email,
-            password: password as string,
-            name
-        },
-    });
+  const data = await auth.api.signUpEmail({
+    body: {
+      email,
+      password: password as string,
+      name,
+    },
+  });
+  if (!data.user) {
+    throw new Error("Filed to create user")
+  }
 
+  
+  try {
     const player = await prisma.$transaction(async (tx) => {
-        return await tx.player.create({
-            data: {
-                userId: authResponse.user.id,
-                name,
-                email,
-            },
-        });
+      const playerTx = await tx.player.create({
+        data: {
+          userId: data.user.id,
+          name,
+          email,
+        },
+      });
+
+      return playerTx
     });
 
     return {
-        user: authResponse.user,
-        token: authResponse.token,
-        player,
+      user: data.user,
+      token: data.token,
+      player,
     };
+
+  } catch (error) {
+    await prisma.user.delete({
+      where: {
+        id: data.user.id,
+      },
+    });
+
+    throw error;
+  }
+
+  
 };
 
 const createTurfOwner = async (payload: ICreateTurfOwner) => {
-    const { name, email, password} = payload;
+  const { name, email, password } = payload;
 
-    const authResponse = await auth.api.signUpEmail({
-        body: {
-            email,
-            password: password as string,
-            name,
-            role: Role.TURF_OWNER,
-            needPasswordChange: true,
-        },
-    });
+  const data = await auth.api.signUpEmail({
+    body: {
+      email,
+      password: password as string,
+      name,
+      role: Role.TURF_OWNER,
+      needPasswordChange: true,
+    },
+  });
 
+  if (!data.user) {
+    throw new Error("Filed to create user");
+  }
+
+
+  try {
     const turfOwner = await prisma.$transaction(async (tx) => {
-        return await tx.turfOwner.create({
-            data: {
-                userId: authResponse.user.id,
-                name,
-                email,
-            },
-        });
+      const turfOnwerTx =  await tx.turfOwner.create({
+        data: {
+          userId: data.user.id,
+          name,
+          email,
+        },
+      });
+
+      return turfOnwerTx;
     });
 
     return {
-        user: authResponse.user,
-        turfOwner,
+      user: data.user,
+      turfOwner,
     };
+
+  } catch (error) {
+    
+    await prisma.user.delete({
+      where: {
+        id: data.user.id,
+      },
+    });
+
+    throw error;
+  }
+
+  
 };
 
 const login = async (payload: ILogin) => {
-    const { email, password } = payload;
+  const { email, password } = payload;
 
-    const authResponse = await auth.api.signInEmail({
-        body: {
-            email,
-            password: password as string,
-        },
-    });
+  const data = await auth.api.signInEmail({
+    body: {
+      email,
+      password: password as string,
+    },
+  });
 
-    return authResponse;
+  if (data.user.isDeleted) {
+    throw new Error("This user is Deleted");
+  } else if (data.user.userStatus === UserStatus.BLOCKED) {
+    throw new Error("This user is Blocked");
+  }
+
+  return data;
 };
 
 export const AuthService = {
-    registerPlayer,
-    createTurfOwner,
-    login,
+  registerPlayer,
+  createTurfOwner,
+  login,
 };

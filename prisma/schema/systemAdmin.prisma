@@ -1,17 +1,18 @@
 model SystemAdmin {
-    id String @id @default(uuid())
-    name String
-    email String
-    profilePhoto String
-    contactNumber String
-    isDeleted     Boolean   @default(false)
-    createdAt     DateTime  @default(now())
-    updatedAt     DateTime  @updatedAt
-    deletedAt     DateTime?
+  id            String    @id @default(uuid())
+  name          String
+  email         String
+  profilePhoto  String
+  contactNumber String
+  isDeleted     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
 
-    userId String @unique
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-    @@index([email, isDeleted])
-    @@map("system_admin")
+  @@index([email], map: "idx_sysadmin_email")
+  @@index([isDeleted], map: "idx_isDeleted")
+  @@map("system_admin")
 }

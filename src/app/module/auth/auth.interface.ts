@@ -2,7 +2,7 @@ export interface IRegisterPlayer {
     name: string;
     email: string;
     password: string;
-    contactNumber: string;
+    contactNumber?: string;
     profilePhoto?: string;
 }
 
