@@ -1,5 +1,5 @@
 model CustomTurfSlot {
-  id        String  @id @default(uuid())
+  id        String  @id @default(uuid(7))
   startTime String
   endTime   String
   duration  Int

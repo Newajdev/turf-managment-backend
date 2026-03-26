@@ -46,3 +46,21 @@ enum TurfStatus {
   DISABLED
   MAINTENANCE
 }
+
+enum NotificationType {
+  BOOKING
+  PAYMENT
+  MAINTENANCE
+  SYSTEM
+  ACCOUNT
+}
+
+
+enum ReportReason {
+  MISLEADING_INFORMATION
+  BAD_SERVICE
+  SAFETY_CONCERNS
+  UNHYGIENIC
+  OVERPRICED
+  OTHER
+}

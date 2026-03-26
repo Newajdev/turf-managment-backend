@@ -1,7 +1,7 @@
 model TurfSlot {
-  id       String  @id @default(uuid())
-  price    Float
-  isActive Boolean @default(true)
+  id       String  @id @default(uuid(7))
+  price    Decimal    @default(0) @db.Decimal(10, 2)
+  isBooking Boolean @default(false)
 
   turfId String
   turf   Turf   @relation(fields: [turfId], references: [id], onDelete: Cascade)

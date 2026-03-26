@@ -1,0 +1,18 @@
+model Report {
+  id          String       @id @default(uuid(7))
+  reason      ReportReason
+  description String
+  
+  playerId    String
+  player      Player       @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  turfId      String
+  turf        Turf         @relation(fields: [turfId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  @@index([playerId], map: "idx_report_playerId")
+  @@index([turfId], map: "idx_report_turfId")
+  @@map("report")
+}

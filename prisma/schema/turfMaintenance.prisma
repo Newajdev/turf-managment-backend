@@ -1,0 +1,16 @@
+model TurfMaintenance {
+    id String @id @default(uuid(7))
+
+    startDateTime DateTime
+    endDateTime   DateTime
+    notice        String
+
+    turfId String
+    turf   Turf   @relation(fields: [turfId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([turfId], map: "idx_turf_maintenance_turfId")
+    @@map("turf_maintenance")
+}

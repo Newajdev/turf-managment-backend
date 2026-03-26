@@ -1,5 +1,5 @@
 model MasterSlot {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid(7))
   slotType  SlotType
   startTime String
   endTime   String

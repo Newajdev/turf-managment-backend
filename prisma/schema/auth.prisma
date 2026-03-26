@@ -18,6 +18,7 @@ model User {
   player      Player?
   turfOwner   TurfOwner?
   systemAdmin SystemAdmin?
+  notifications Notification[]
 
   @@map("user")
 }

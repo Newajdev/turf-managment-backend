@@ -1,5 +1,5 @@
 model Turf {
-  id              String         @id @default(cuid())
+  id              String         @id @default(uuid(7))
   name            String
   address         String
   contactNumber   String[]
@@ -13,9 +13,9 @@ model Turf {
   isAlwaysOpen    Boolean        @default(false)
   saveCount       Int            @default(0)
   turfStatus      TurfStatus     @default(ACTIVE)
-  rating          Decimal        @default(0) @db.Decimal(3, 2)
-  reviewCount     Int            @default(0)
-  hourlyRate      Decimal        @default(0) @db.Decimal(3, 2)
+  rating          Decimal    @default(0) @db.Decimal(3, 2)
+  reviewCount     Int        @default(0)
+  hourlyRate      Decimal    @default(0) @db.Decimal(10, 2)
 
   ownerId String    @unique
   owner   TurfOwner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
@@ -28,6 +28,8 @@ model Turf {
   bookings        Booking[]
   reviews         Review[]
   customTurfSlots CustomTurfSlot[]
+  turfMaintenances TurfMaintenance[]
+  reports          Report[]
 
   @@index([address], map: "idx_turf_address")
   @@map("turf")

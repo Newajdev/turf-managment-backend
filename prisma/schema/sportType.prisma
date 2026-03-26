@@ -1,5 +1,5 @@
 model SportType {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid(7))
   title     String   @unique
   icon      String?  @unique
   createdAt DateTime @default(now())

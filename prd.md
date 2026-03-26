@@ -274,3 +274,24 @@ paymentStatus - createdAt
 src ├── modules │ ├── auth │ ├── user │ ├── turf │ ├── sportType │ ├──
 slot │ ├── booking │ ├── payment │ ├── review │ └── analytics │ ├──
 middleware ├── utils ├── config └── server.ts
+
+
+------------------------------------------------------------------------
+
+## notification
+
+1. if a player register then the system admin will receive a notification like this
+example: 
+a user 'user name: Examaple' registered with the email: exmaple@gmail.com
+
+2. if a payer booking then the turf owner will receive a notification that you got a new booking from this player.
+
+3. if system admin boolk any user then the user will get a notification that you are block by the system admin
+
+4. if system admin disable any turf then the turf owner will receive a notificatin that is you turf is block
+
+
+
+
+
+
