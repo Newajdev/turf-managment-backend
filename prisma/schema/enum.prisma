@@ -23,3 +23,10 @@ enum PaymentStatus {
   FAILED
   REFUNDED
 }
+
+enum SlotType {
+  MORNING
+  AFTERNOON
+  EVENING
+  NIGHT
+}

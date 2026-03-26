@@ -121,9 +121,11 @@ Fields: - id - title - description - createdAt
 
 Step 1 --- System Admin creates MASTER SLOTS
 
-Examples: 06:00 -- 07:00\
-07:00 -- 08:00\
-08:00 -- 09:00
+Examples: 
+slotType: MORNING
+startTime: 10:00 AM
+endTime: 11:00 AM
+
 
 Fields: - id - startTime - endTime - duration
 

@@ -1,8 +1,9 @@
 model MasterSlot {
   id        String @id @default(cuid())
+  slotType SlotType
   startTime String
   endTime   String
-  duration  Int
+  duration  Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

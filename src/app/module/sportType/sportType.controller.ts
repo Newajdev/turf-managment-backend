@@ -46,7 +46,14 @@ const getSingleSportType = catchAsync(async (req: Request, res: Response) => {
 
 const updateSportType = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const result = await SportTypeService.updateSportType(id as string, req.body);
+    const payload = {
+      ...req.body,
+      icon: req.file?.path,
+    };
+    const result = await SportTypeService.updateSportType(
+      id as string,
+      payload,
+    );
 
     sendResponse(res, {
         httpStatusCode: status.UPGRADE_REQUIRED,

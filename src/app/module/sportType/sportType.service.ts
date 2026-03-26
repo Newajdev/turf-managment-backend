@@ -51,20 +51,16 @@ const updateSportType = async (id: string, payload: Partial<ISportType>) => {
     throw new AppError(status.NOT_FOUND, "SportType not found");
   }
 
-  if (payload.title || payload.icon) {
+  if (payload.title) {
     const conflictCheck = await prisma.sportType.findFirst({
       where: {
-        id: { not: id },
-        OR: [
-          ...(payload.title ? [{ title: payload.title }] : []),
-          ...(payload.icon ? [{ icon: payload.icon }] : []),
-        ],
+            id: { not : id } ,
       },
     });
     if (conflictCheck) {
       throw new AppError(
         status.CONFLICT,
-        "Another SportType with this title or icon already exists!",
+        "Another SportType with this title  exists!",
       );
     }
   }

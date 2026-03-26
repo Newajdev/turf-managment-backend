@@ -10,8 +10,8 @@ const router = express.Router();
 
 router.post(
   "/",
-//   checkAuth(Role.SYSTEM_ADMIN),
-  multerUpload.single('file'),
+  checkAuth(Role.SYSTEM_ADMIN),
+  multerUpload.single("file"),
   validateRequest(SportTypeValidations.sportTypeValidationSchema),
   SportTypeController.createSportType,
 );
@@ -20,6 +20,7 @@ router.get("/:id", SportTypeController.getSingleSportType);
 router.patch(
   "/:id",
   checkAuth(Role.SYSTEM_ADMIN),
+  multerUpload.single("file"),
   validateRequest(SportTypeValidations.updateSportTypeValidationSchema),
   SportTypeController.updateSportType,
 );
