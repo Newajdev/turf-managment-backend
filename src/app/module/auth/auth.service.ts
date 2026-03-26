@@ -2,9 +2,20 @@ import { Role, UserStatus } from "../../../generated/prisma/enums";
 import { auth } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
 import { IRegisterPlayer, ICreateTurfOwner, ILogin } from "./auth.interface";
+import AppError from "../../errorHelpers/AppError";
+import httpStatus from "http-status";
+import { tokenUtils } from "../../utils/token";
 
 const registerPlayer = async (payload: IRegisterPlayer) => {
   const { name, email, password } = payload;
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email }
+  });
+
+  if (existingUser) {
+    throw new AppError(httpStatus.CONFLICT, "User with this email already exists!");
+  }
 
   const data = await auth.api.signUpEmail({
     body: {
@@ -14,7 +25,7 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
     },
   });
   if (!data.user) {
-    throw new Error("Filed to create user")
+    throw new AppError(httpStatus.BAD_REQUEST, "Failed to create user");
   }
 
   
@@ -53,6 +64,14 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
 const createTurfOwner = async (payload: ICreateTurfOwner) => {
   const { name, email, password } = payload;
 
+  const existingUser = await prisma.user.findUnique({
+    where: { email }
+  });
+
+  if (existingUser) {
+    throw new AppError(httpStatus.CONFLICT, "TurfOwner with this email already exists!");
+  }
+
   const data = await auth.api.signUpEmail({
     body: {
       email,
@@ -64,7 +83,7 @@ const createTurfOwner = async (payload: ICreateTurfOwner) => {
   });
 
   if (!data.user) {
-    throw new Error("Filed to create user");
+    throw new AppError(httpStatus.BAD_REQUEST, "Failed to create user");
   }
 
 
@@ -111,12 +130,30 @@ const login = async (payload: ILogin) => {
   });
 
   if (data.user.isDeleted) {
-    throw new Error("This user is Deleted");
+    throw new AppError(httpStatus.FORBIDDEN, "This user is Deleted");
   } else if (data.user.userStatus === UserStatus.BLOCKED) {
-    throw new Error("This user is Blocked");
+    throw new AppError(httpStatus.FORBIDDEN, "This user is Blocked");
   }
 
-  return data;
+  const jwtPayload = {
+    userId: data.user.id,
+    email: data.user.email,
+    role: data.user.role,
+    name: data.user.name,
+    status: data.user.userStatus,
+    isDeleted: data.user.isDeleted,
+    emailVerified: data.user.emailVerified,
+  };
+
+  const accessToken = tokenUtils.getAccessToken(jwtPayload);
+  const refreshToken = tokenUtils.getRefreshToken(jwtPayload);
+
+  return {
+    user: data.user,
+    betterAuthToken: data.token,
+    accessToken,
+    refreshToken,
+  };
 };
 
 export const AuthService = {
