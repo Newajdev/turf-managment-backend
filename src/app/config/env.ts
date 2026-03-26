@@ -21,6 +21,10 @@ interface EnvConfig {
   ADMIN_PASSWORD: string;
   ADMIN_CONTACT: string;
   ADMIN_PHOTO: string;
+  CLOUDINARY_CLOUD_NAME: string;
+  CLOUDINARY_API_KEY: string;
+  CLOUDINARY_API_SECRET: string;
+  FRONTEND_URL: string;
 }
 
 const loadEnvVariables = (): EnvConfig => {
@@ -41,6 +45,10 @@ const loadEnvVariables = (): EnvConfig => {
     "ADMIN_PASSWORD",
     "ADMIN_CONTACT",
     "ADMIN_PHOTO",
+    "CLOUDINARY_CLOUD_NAME",
+    "CLOUDINARY_API_KEY",
+    "CLOUDINARY_API_SECRET",
+    "FRONTEND_URL",
   ];
 
   requireEnvVariable.forEach((variable) => {
@@ -68,6 +76,10 @@ const loadEnvVariables = (): EnvConfig => {
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD as string,
     ADMIN_CONTACT: process.env.ADMIN_CONTACT as string,
     ADMIN_PHOTO: process.env.ADMIN_PHOTO as string,
+    CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME as string,
+    CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY as string,
+    CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET as string,
+    FRONTEND_URL: process.env.FRONTEND_URL as string,
   };
 };
 

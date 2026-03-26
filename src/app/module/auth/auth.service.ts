@@ -247,15 +247,12 @@ const changePassword = async (
   sessionToken: string,
 ) => {
 
-  console.log("Session Token: ", sessionToken)
-  
   const session = await auth.api.getSession({
     headers: new Headers({
       Authorization: `Bearer ${sessionToken}`,
     }),
   });
 
-  console.log("Session data: ", session);
   
   if (!session) {
     throw new AppError(status.UNAUTHORIZED, "Invalid session token");

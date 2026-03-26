@@ -5,7 +5,13 @@ import { SportTypeService } from './sportType.service';
 import status from 'http-status';
 
 const createSportType = catchAsync(async (req: Request, res: Response) => {
-    const result = await SportTypeService.createSportType(req.body);
+    const payload = {
+        ...req.body,
+        icon: req.file?.path
+    }
+    const result = await SportTypeService.createSportType(payload);
+
+
 
     sendResponse(res, {
         httpStatusCode: status.CREATED,
