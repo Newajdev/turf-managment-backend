@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f4f7f6; padding-bottom: 40px; }
+        .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-top: 40px; }
+        .header { background: #f59e0b; padding: 30px; text-align: center; color: white; }
+        .content { padding: 40px; text-align: center; color: #334155; }
+        .alert-box { background-color: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 20px; margin: 25px 0; color: #92400e; }
+        .footer { padding: 20px; text-align: center; font-size: 12px; color: #64748b; }
+        p { line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="main">
+            <div class="header">
+                <h1>Maintenance Alert</h1>
+            </div>
+            <div class="content">
+                <h2>Service Interruption</h2>
+                <p>Hello <%= playerName %>,</p>
+                <p>We are writing to inform you that your upcoming booking has been affected by unscheduled maintenance at <strong><%= turfName %></strong>.</p>
+                
+                <div class="alert-box">
+                    <strong>Scheduled Slot:</strong> <%= date %>, <%= startTime %> - <%= endTime %><br>
+                    <strong>Status:</strong> Postponed / Eligible for Refund
+                </div>
+                
+                <p>We apologize for the inconvenience. Our team will contact you shortly to reschedule or process a full refund.</p>
+            </div>
+            <div class="footer">
+                &copy; 2026 Turf Booking System. All rights reserved.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

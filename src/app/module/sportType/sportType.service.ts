@@ -2,6 +2,8 @@ import { prisma } from "../../lib/prisma";
 import { ISportType } from "./sportType.interface";
 import AppError from "../../errorHelpers/AppError";
 import status from "http-status";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { IQueryParams } from "../../interfaces/query.interface";
 
 const createSportType = async (payload: ISportType) => {
   const isExist = await prisma.sportType.findFirst({
@@ -23,10 +25,17 @@ const createSportType = async (payload: ISportType) => {
   return result;
 };
 
-const getAllSportTypes = async () => {
-  const result = await prisma.sportType.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+const getAllSportTypes = async (query: IQueryParams) => {
+  const sportTypeQuery = new QueryBuilder(prisma.sportType as any, query, {
+      searchableFields: ["title"],
+      filterableFields: [],
+  })
+  .search()
+  .filter()
+  .sort()
+  .paginate();
+
+  const result = await sportTypeQuery.execute();
   return result;
 };
 

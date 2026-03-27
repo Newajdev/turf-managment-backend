@@ -3,6 +3,8 @@ import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
 import { status } from "http-status";
 import { IUserUpdate } from "./user.interface";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { IQueryParams } from "../../interfaces/query.interface";
 
 const getMyProfile = async (userId: string, role: Role) => {
   const user = await prisma.user.findUnique({
@@ -156,9 +158,24 @@ const blockUser = async (userId: string, data: { status: UserStatus }) => {
   return result;
 };
 
+const getAllUsers = async (query: IQueryParams) => {
+  const userQuery = new QueryBuilder(prisma.user as any, query, {
+      searchableFields: ["name", "email"],
+      filterableFields: ["role", "userStatus"],
+  })
+  .search()
+  .filter()
+  .sort()
+  .paginate();
+
+  const result = await userQuery.execute();
+  return result;
+};
+
 export const UserService = {
   getMyProfile,
   updateMyProfile,
   deleteMyProfile,
   blockUser,
+  getAllUsers,
 };

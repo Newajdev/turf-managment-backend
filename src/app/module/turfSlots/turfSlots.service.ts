@@ -2,6 +2,8 @@ import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
 import { status } from "http-status";
 import { ICustomTurfSlot, ITurfSlot } from "./turfSlots.interface";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { IQueryParams } from "../../interfaces/query.interface";
 
 const calculateDurationInMinutes = (start: string, end: string) => {
   const [startH, startM] = start.split(":").map(Number);
@@ -74,16 +76,23 @@ const createCustomTurfSlot = async (
   return result;
 };
 
-const getRegularSlotsByTurf = async (turfId: string) => {
-  const result = await prisma.turfSlot.findMany({
-    where: { turfId, isBooking: true },
-    include: { slot: true },
-  });
+const getRegularSlotsByTurf = async (turfId: string, query: IQueryParams) => {
+  const slotQuery = new QueryBuilder(prisma.turfSlot as any, query, {
+      searchableFields: [],
+      filterableFields: ["isBooking"],
+  })
+  .search()
+  .filter()
+  .sort()
+  .paginate()
+  .where({ turfId })
+  .include({ slot: true });
 
+  const result = await slotQuery.execute();
   return result;
 };
 
-const getCustomSlotsByPlayer = async (userId: string, turfId: string) => {
+const getCustomSlotsByPlayer = async (userId: string, turfId: string, query: IQueryParams) => {
   const player = await prisma.player.findUnique({
     where: { userId },
   });
@@ -92,14 +101,20 @@ const getCustomSlotsByPlayer = async (userId: string, turfId: string) => {
     throw new AppError(status.NOT_FOUND, "Player profile not found!");
   }
 
-  const result = await prisma.customTurfSlot.findMany({
-    where: { 
-      turfId, 
-      playerId: player.id,
-      isBooked: false 
-    },
+  const slotQuery = new QueryBuilder(prisma.customTurfSlot as any, query, {
+      searchableFields: [],
+      filterableFields: ["isBooked"],
+  })
+  .search()
+  .filter()
+  .sort()
+  .paginate()
+  .where({ 
+    turfId, 
+    playerId: player.id 
   });
 
+  const result = await slotQuery.execute();
   return result;
 };
 

@@ -3,6 +3,8 @@ import AppError from "../../errorHelpers/AppError";
 import { status } from "http-status";
 import { ITurf } from "./turf.interface";
 import { TurfStatus } from "../../../generated/prisma/enums";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { IQueryParams } from "../../interfaces/query.interface";
 
 const createTurf = async (userId: string, payload: ITurf) => {
   const turfOwner = await prisma.turfOwner.findUnique({
@@ -43,13 +45,21 @@ const createTurf = async (userId: string, payload: ITurf) => {
   return result;
 };
 
-const getAllTurfs = async () => {
-  const result = await prisma.turf.findMany({
-    include: {
+const getAllTurfs = async (query: IQueryParams) => {
+  const turfQuery = new QueryBuilder(prisma.turf as any, query, {
+    searchableFields: ["name", "address"],
+    filterableFields: ["turfStatus", "hourlyRate"],
+  })
+    .search()
+    .filter()
+    .sort()
+    .paginate()
+    .include({
       owner: true,
       sportTypes: true,
-    },
-  });
+    });
+
+  const result = await turfQuery.execute();
   return result;
 };
 

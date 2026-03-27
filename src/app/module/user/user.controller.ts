@@ -52,9 +52,22 @@ const blockUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserService.getAllUsers(req.query);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Users retrieved successfully",
+    data: result.data,
+    meta: result.meta,
+  });
+});
+
 export const UserController = {
   getMyProfile,
   updateMyProfile,
   deleteMyProfile,
   blockUser,
+  getAllUsers,
 };

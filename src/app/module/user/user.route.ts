@@ -13,6 +13,12 @@ router.get(
   UserController.getMyProfile,
 );
 
+router.get(
+  "/",
+  checkAuth(Role.SYSTEM_ADMIN),
+  UserController.getAllUsers,
+);
+
 router.patch(
   "/update-profile",
   checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),

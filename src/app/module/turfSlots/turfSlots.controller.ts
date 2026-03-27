@@ -30,26 +30,28 @@ const createCustomTurfSlot = catchAsync(async (req: Request, res: Response) => {
 
 const getRegularSlotsByTurf = catchAsync(async (req: Request, res: Response) => {
   const { turfId } = req.params;
-  const result = await TurfSlotsService.getRegularSlotsByTurf(turfId as string);
+  const result = await TurfSlotsService.getRegularSlotsByTurf(turfId as string, req.query);
 
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
     message: "Regular slots retrieved successfully",
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 
 const getCustomSlotsByPlayer = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.user;
   const { turfId } = req.params;
-  const result = await TurfSlotsService.getCustomSlotsByPlayer(userId, turfId as string);
+  const result = await TurfSlotsService.getCustomSlotsByPlayer(userId, turfId as string, req.query);
 
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
     message: "Custom slots retrieved successfully",
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 

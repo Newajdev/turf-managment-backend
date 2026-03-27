@@ -74,13 +74,14 @@ const createTurf = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllTurfs = catchAsync(async (req: Request, res: Response) => {
-  const result = await TurfService.getAllTurfs();
+  const result = await TurfService.getAllTurfs(req.query);
 
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
     message: "Turfs retrieved successfully",
-    data: result,
+    data: result.data,
+    meta: result.meta,
   });
 });
 

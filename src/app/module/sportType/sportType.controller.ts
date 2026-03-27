@@ -22,13 +22,14 @@ const createSportType = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllSportTypes = catchAsync(async (req: Request, res: Response) => {
-    const result = await SportTypeService.getAllSportTypes();
+    const result = await SportTypeService.getAllSportTypes(req.query);
 
     sendResponse(res, {
         httpStatusCode: status.OK,
         success: true,
         message: 'SportTypes retrieved successfully',
-        data: result,
+        data: result.data,
+        meta: result.meta,
     });
 });
 
