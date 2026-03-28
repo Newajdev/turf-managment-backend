@@ -143,6 +143,28 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 
 
 
+const forgotPassword = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.forgotPassword(req.body);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "OTP sent successfully",
+    data: result,
+  });
+});
+
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.resetPassword(req.body);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Password reset successfully",
+    data: result,
+  });
+});
+
 export const AuthController = {
   registerPlayer,
   createTurfOwner,
@@ -150,4 +172,6 @@ export const AuthController = {
   refreshToken,
   logout,
   changePassword,
+  forgotPassword,
+  resetPassword,
 };

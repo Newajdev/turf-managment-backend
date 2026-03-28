@@ -31,10 +31,17 @@ const forgetPasswordSchema = z.object({
   email: z.string({ message: "Email is required" }).email(),
 });
 
+const resetPasswordSchema = z.object({
+  email: z.string({ message: "Email is required" }).email(),
+  otp: z.string({ message: "OTP is required" }).length(6),
+  password: z.string({ message: "Password is required" }).min(6).max(15),
+});
+
 export const AuthValidations = {
   registerPlayerSchema,
   createTurfOwnerSchema,
   loginSchema,
   changePasswordSchema,
   forgetPasswordSchema,
+  resetPasswordSchema,
 };

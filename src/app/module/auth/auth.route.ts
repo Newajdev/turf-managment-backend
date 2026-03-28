@@ -28,10 +28,15 @@ router.post("/refresh-token", AuthController.refreshToken);
 router.post("/logout", AuthController.logout);
 
 router.post(
-  "/change-password",
-  checkAuth(Role.PLAYER, Role.SYSTEM_ADMIN, Role.TURF_OWNER),
-  validateRequest(AuthValidations.changePasswordSchema),
-  AuthController.changePassword,
-)
+  "/forgot-password",
+  validateRequest(AuthValidations.forgetPasswordSchema),
+  AuthController.forgotPassword,
+);
+
+router.post(
+  "/reset-password",
+  validateRequest(AuthValidations.resetPasswordSchema),
+  AuthController.resetPassword,
+);
 
 export const AuthRoutes = router;

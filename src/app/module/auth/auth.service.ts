@@ -1,7 +1,7 @@
 import { Role, UserStatus } from "../../../generated/prisma/enums";
 import { auth } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
-import { IRegisterPlayer, ICreateTurfOwner, ILogin, IChangePassword } from "./auth.interface";
+import { IRegisterPlayer, ICreateTurfOwner, ILogin, IChangePassword, IForgotPassword, IResetPassword } from "./auth.interface";
 import AppError from "../../errorHelpers/AppError";
 import { status } from "http-status";
 import { tokenUtils } from "../../utils/token";
@@ -309,6 +309,27 @@ const changePassword = async (
   };
 };
 
+const forgotPassword = async (payload: IForgotPassword) => {
+  const { email } = payload;
+  const result = await auth.api.sendVerificationOTP({
+    body: {
+      email,
+      type: "forget-password",
+    },
+  });
+  return result;
+};
+
+const resetPassword = async (payload: IResetPassword) => {
+  const { otp, password } = payload;
+  const result = await auth.api.resetPassword({
+    body: {
+      newPassword: password,
+      token: otp,
+    },
+  });
+  return result;
+};
 
 export const AuthService = {
   registerPlayer,
@@ -316,5 +337,7 @@ export const AuthService = {
   login,
   refreshToken,
   logout,
-  changePassword
+  changePassword,
+  forgotPassword,
+  resetPassword,
 };

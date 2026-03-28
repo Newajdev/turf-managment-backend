@@ -4,6 +4,7 @@ import httpStatus from "http-status";
 
 dotenv.config();
 
+
 interface EnvConfig {
   NODE_ENV: string;
   PORT: string;
@@ -25,6 +26,14 @@ interface EnvConfig {
   CLOUDINARY_API_KEY: string;
   CLOUDINARY_API_SECRET: string;
   FRONTEND_URL: string;
+  EMAIL_SENDER_SMTP_USER: string;
+  EMAIL_SENDER_SMTP_PASS: string;
+  EMAIL_SENDER_SMTP_HOST: string;
+  EMAIL_SENDER_SMTP_PORT: string;
+  EMAIL_SENDER_SMTP_FROM: string;
+  GOOGLE_CLIENT_ID: string;
+  GOOGLE_SECRET: string;
+  GOOGLE_CALLBACK_URL: string;
 }
 
 const loadEnvVariables = (): EnvConfig => {
@@ -49,6 +58,14 @@ const loadEnvVariables = (): EnvConfig => {
     "CLOUDINARY_API_KEY",
     "CLOUDINARY_API_SECRET",
     "FRONTEND_URL",
+    "EMAIL_SENDER_SMTP_USER",
+    "EMAIL_SENDER_SMTP_PASS",
+    "EMAIL_SENDER_SMTP_HOST",
+    "EMAIL_SENDER_SMTP_PORT",
+    "EMAIL_SENDER_SMTP_FROM",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_SECRET",
+    "GOOGLE_CALLBACK_URL",
   ];
 
   requireEnvVariable.forEach((variable) => {
@@ -80,6 +97,14 @@ const loadEnvVariables = (): EnvConfig => {
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY as string,
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET as string,
     FRONTEND_URL: process.env.FRONTEND_URL as string,
+    EMAIL_SENDER_SMTP_USER: process.env.EMAIL_SENDER_SMTP_USER as string,
+    EMAIL_SENDER_SMTP_PASS: process.env.EMAIL_SENDER_SMTP_PASS as string,
+    EMAIL_SENDER_SMTP_HOST: process.env.EMAIL_SENDER_SMTP_HOST as string,
+    EMAIL_SENDER_SMTP_PORT: process.env.EMAIL_SENDER_SMTP_PORT as string,
+    EMAIL_SENDER_SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM as string,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
+    GOOGLE_SECRET: process.env.GOOGLE_SECRET as string,
+    GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL as string,
   };
 };
 

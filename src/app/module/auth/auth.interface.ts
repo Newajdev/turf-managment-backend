@@ -23,3 +23,13 @@ export interface IChangePassword {
   currentPassword: string;
   newPassword: string;
 }
+
+export interface IForgotPassword {
+  email: string;
+}
+
+export interface IResetPassword {
+  email: string;
+  otp: string;
+  password: string;
+}
