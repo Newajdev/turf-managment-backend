@@ -15,6 +15,13 @@ router.post(
   TurfSlotsController.createTurfSlot,
 );
 
+router.post(
+  "/bulk",
+  checkAuth(Role.TURF_OWNER),
+  validateRequest(TurfSlotValidations.bulkCreateTurfSlotSchema),
+  TurfSlotsController.bulkCreateTurfSlots,
+);
+
 // Custom Slot Management (Player)
 router.post(
   "/custom",
@@ -27,6 +34,19 @@ router.post(
 router.get("/:turfId", TurfSlotsController.getRegularSlotsByTurf); // Public
 
 router.get("/custom/:turfId", checkAuth(Role.PLAYER), TurfSlotsController.getCustomSlotsByPlayer); // Protected
+
+router.patch(
+  "/custom/:id",
+  checkAuth(Role.PLAYER),
+  validateRequest(TurfSlotValidations.updateCustomTurfSlotSchema),
+  TurfSlotsController.updateCustomTurfSlot,
+);
+
+router.delete(
+  "/custom/:id",
+  checkAuth(Role.PLAYER),
+  TurfSlotsController.deleteCustomTurfSlot,
+);
 
 // Deletion
 router.delete("/:id", checkAuth(Role.TURF_OWNER), TurfSlotsController.deleteTurfSlot);

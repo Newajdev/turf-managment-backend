@@ -1,6 +1,6 @@
 model TurfSlot {
   id       String  @id @default(uuid(7))
-  price    Decimal    @default(0) @db.Decimal(10, 2)
+  price    Float
   isBooking Boolean @default(false)
 
   turfId String

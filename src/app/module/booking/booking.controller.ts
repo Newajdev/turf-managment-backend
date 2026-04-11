@@ -56,9 +56,37 @@ const cancelBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const rejectBooking = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user;
+  const { id } = req.params;
+  const result = await BookingService.rejectBooking(userId, id as string);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Booking rejected successfully",
+    data: result,
+  });
+});
+
+const acceptBooking = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user;
+  const { id } = req.params;
+  const result = await BookingService.acceptBooking(userId, id as string);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Booking accepted successfully",
+    data: result,
+  });
+});
+
 export const BookingController = {
   createBooking,
   getMyBookings,
   getTurfBookings,
   cancelBooking,
+  rejectBooking,
+  acceptBooking,
 };

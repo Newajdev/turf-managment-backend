@@ -78,6 +78,10 @@ export const checkAuth =
             );
           }
 
+          if (user.needPasswordChange && req.originalUrl !== "/api/v1/auth/change-password") {
+            throw new AppError(status.FORBIDDEN, "Please change your password first.");
+          }
+
           req.user = {
             userId: user.id,
             role: user.role,
@@ -124,6 +128,10 @@ export const checkAuth =
           status.FORBIDDEN,
           "Forbidden access! You do not have permission to access this resource.",
         );
+      }
+
+      if (verifiedToken.data!.needPasswordChange && req.originalUrl !== "/api/v1/auth/change-password") {
+        throw new AppError(status.FORBIDDEN, "Please change your password first.");
       }
 
       next();

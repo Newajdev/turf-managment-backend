@@ -4,6 +4,7 @@ node_modules
 !.env.example
 dist
 .vscode
+artifacts
 
 /src/generated
 

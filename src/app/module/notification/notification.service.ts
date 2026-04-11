@@ -63,9 +63,17 @@ const deleteNotification = async (userId: string, id: string) => {
   return null;
 };
 
+const createNotification = async (payload: { title: string, message: string, userId: string, type?: any, link?: string }) => {
+  const result = await prisma.notification.create({
+    data: payload,
+  });
+  return result;
+};
+
 export const NotificationService = {
   getMyNotifications,
   markAsRead,
   markAllAsRead,
   deleteNotification,
+  createNotification,
 };

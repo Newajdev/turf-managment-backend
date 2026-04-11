@@ -5,6 +5,8 @@ import { status } from "http-status";
 import { IUserUpdate } from "./user.interface";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IQueryParams } from "../../interfaces/query.interface";
+import { NotificationService } from "../notification/notification.service";
+import { NotificationType } from "../../../generated/prisma/enums";
 
 const getMyProfile = async (userId: string, role: Role) => {
   const user = await prisma.user.findUnique({
@@ -154,6 +156,22 @@ const blockUser = async (userId: string, data: { status: UserStatus }) => {
       userStatus: data.status,
     },
   });
+
+  if (data.status === UserStatus.BLOCKED) {
+    await NotificationService.createNotification({
+      title: "Account Blocked",
+      message: "Your account has been blocked by the System Administrator.",
+      userId: userId,
+      type: NotificationType.SYSTEM
+    });
+  } else if (data.status === UserStatus.INACTIVE) {
+    await NotificationService.createNotification({
+      title: "Account Deactivated",
+      message: "Your account has been deactivated.",
+      userId: userId,
+      type: NotificationType.SYSTEM
+    });
+  }
 
   return result;
 };

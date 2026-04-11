@@ -63,7 +63,8 @@ const updateSportType = async (id: string, payload: Partial<ISportType>) => {
   if (payload.title) {
     const conflictCheck = await prisma.sportType.findFirst({
       where: {
-            id: { not : id } ,
+        title: payload.title,
+        id: { not : id } ,
       },
     });
     if (conflictCheck) {

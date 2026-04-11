@@ -6,6 +6,7 @@ model CustomTurfSlot {
   price     Float
   isBooked  Boolean @default(false)
   status    CustomSlotStatus @default(PENDING)
+  needApproval Boolean @default(true)
 
   turfId String
   turf   Turf   @relation(fields: [turfId], references: [id], onDelete: Cascade)
@@ -15,6 +16,8 @@ model CustomTurfSlot {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+  deletedAt DateTime?
 
   bookings Booking[]
 

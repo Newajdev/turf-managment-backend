@@ -2,9 +2,12 @@ import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
 import { status } from "http-status";
 import { ITurf } from "./turf.interface";
-import { TurfStatus } from "../../../generated/prisma/enums";
+import { TurfStatus, BookingStatus } from "../../../generated/prisma/enums";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IQueryParams } from "../../interfaces/query.interface";
+import { NotificationService } from "../notification/notification.service";
+import { NotificationType } from "../../../generated/prisma/enums";
+import { sendEmail } from "../../utils/email";
 
 const createTurf = async (userId: string, payload: ITurf) => {
   const turfOwner = await prisma.turfOwner.findUnique({
@@ -127,6 +130,55 @@ const updateTurf = async (
       sportTypes: sportsTypes && { connect: sportsTypesData },
     },
   });
+
+  if (rest.turfStatus && rest.turfStatus !== turf.turfStatus) {
+    await NotificationService.createNotification({
+      title: "Turf Status Updated",
+      message: `The status of your turf "${result.name}" has been updated to ${rest.turfStatus}.`,
+      userId: turfOwner.userId,
+      type: NotificationType.SYSTEM
+    });
+  }
+
+  // If status is changed to MAINTENANCE, notify all affected players
+  if (rest.turfStatus === TurfStatus.MAINTENANCE) {
+    const upcomingBookings = await prisma.booking.findMany({
+      where: {
+        turfId: id,
+        status: BookingStatus.CONFIRMED,
+        date: { gte: new Date() }
+      },
+      include: { 
+        player: true,
+        turfSlot: { include: { slot: true } },
+        customSlot: true
+      }
+    });
+
+    for (const booking of upcomingBookings) {
+      if (booking.player) {
+        let timeInfo = { startTime: "N/A", endTime: "N/A" };
+        if (booking.turfSlot) {
+          timeInfo = { startTime: booking.turfSlot.slot.startTime, endTime: booking.turfSlot.slot.endTime };
+        } else if (booking.customSlot) {
+          timeInfo = { startTime: booking.customSlot.startTime, endTime: booking.customSlot.endTime };
+        }
+
+        await sendEmail({
+          to: booking.player.email,
+          subject: "Urgent: Turf Maintenance Alert",
+          templateName: "maintenance-alert",
+          templateData: {
+            playerName: booking.player.name,
+            turfName: result.name,
+            date: booking.date.toDateString(),
+            startTime: timeInfo.startTime,
+            endTime: timeInfo.endTime
+          }
+        });
+      }
+    }
+  }
 
   return result;
 };

@@ -5,7 +5,7 @@ CREATE TYPE "Role" AS ENUM ('SYSTEM_ADMIN', 'TURF_OWNER', 'PLAYER');
 CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'BLOCKED', 'DELETED');
 
 -- CreateEnum
-CREATE TYPE "BookingStatus" AS ENUM ('CONFIRMED', 'REJECTED', 'CANCELLED', 'COMPLETED');
+CREATE TYPE "BookingStatus" AS ENUM ('PENDING', 'CONFIRMED', 'REJECTED', 'CANCELLED', 'COMPLETED');
 
 -- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('UNPAID', 'PAID', 'REFUNDED', 'FAILED');
@@ -95,7 +95,7 @@ CREATE TABLE "verification" (
 CREATE TABLE "booking" (
     "id" TEXT NOT NULL,
     "date" DATE NOT NULL,
-    "status" "BookingStatus" NOT NULL DEFAULT 'CONFIRMED',
+    "status" "BookingStatus" NOT NULL DEFAULT 'PENDING',
     "paymentStatus" "PaymentStatus" NOT NULL DEFAULT 'UNPAID',
     "playerId" TEXT NOT NULL,
     "turfId" TEXT NOT NULL,
@@ -103,6 +103,8 @@ CREATE TABLE "booking" (
     "customSlotId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "booking_pkey" PRIMARY KEY ("id")
 );
@@ -116,10 +118,13 @@ CREATE TABLE "custom_turf_slot" (
     "price" DOUBLE PRECISION NOT NULL,
     "isBooked" BOOLEAN NOT NULL DEFAULT false,
     "status" "CustomSlotStatus" NOT NULL DEFAULT 'PENDING',
+    "needApproval" BOOLEAN NOT NULL DEFAULT true,
     "turfId" TEXT NOT NULL,
     "playerId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "custom_turf_slot_pkey" PRIMARY KEY ("id")
 );
@@ -295,7 +300,7 @@ CREATE TABLE "turf_owner" (
 -- CreateTable
 CREATE TABLE "turf_slot" (
     "id" TEXT NOT NULL,
-    "price" DECIMAL(10,2) NOT NULL DEFAULT 0,
+    "price" DOUBLE PRECISION NOT NULL,
     "isBooking" BOOLEAN NOT NULL DEFAULT false,
     "turfId" TEXT NOT NULL,
     "slotId" TEXT NOT NULL,

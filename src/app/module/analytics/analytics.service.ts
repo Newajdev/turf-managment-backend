@@ -7,7 +7,7 @@ const getAdminAnalytics = async () => {
     const [totalRevenue, totalPlayers, totalTurfOwners, totalTurfs, bookingsByStatus] = await Promise.all([
         prisma.payment.aggregate({
             _sum: { amount: true },
-            where: { status: PaymentStatus.SUCCESS }
+            where: { status: PaymentStatus.PAID }
         }),
         prisma.player.count(),
         prisma.turfOwner.count(),
@@ -54,9 +54,9 @@ const getOwnerAnalytics = async (userId: string) => {
     const [revenue, bookings, reviews] = await Promise.all([
         prisma.payment.aggregate({
             _sum: { amount: true },
-            where: { 
+            where: {
                 booking: { turfId: { in: turfIds } },
-                status: PaymentStatus.SUCCESS
+                status: PaymentStatus.PAID
             }
         }),
         prisma.booking.count({

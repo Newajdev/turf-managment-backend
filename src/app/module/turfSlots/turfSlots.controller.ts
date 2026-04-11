@@ -68,10 +68,51 @@ const deleteTurfSlot = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const bulkCreateTurfSlots = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user;
+  const result = await TurfSlotsService.bulkCreateTurfSlots(userId, req.body);
+
+  sendResponse(res, {
+    httpStatusCode: status.CREATED,
+    success: true,
+    message: "Turf slots created successfully",
+    data: result,
+  });
+});
+
+const updateCustomTurfSlot = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user;
+  const { id } = req.params;
+  const result = await TurfSlotsService.updateCustomTurfSlot(userId, id, req.body);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Custom turf slot updated successfully",
+    data: result,
+  });
+});
+
+const deleteCustomTurfSlot = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user;
+  const { id } = req.params;
+  const result = await TurfSlotsService.deleteCustomTurfSlot(userId, id);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Custom turf slot deleted successfully",
+    data: result,
+  });
+});
+
 export const TurfSlotsController = {
   createTurfSlot,
   createCustomTurfSlot,
   getRegularSlotsByTurf,
   getCustomSlotsByPlayer,
   deleteTurfSlot,
+  bulkCreateTurfSlots,
+  updateCustomTurfSlot,
+  deleteCustomTurfSlot,
 };

@@ -26,4 +26,5 @@ router.use("/report", ReportRoutes);
 router.use("/review", ReviewRoutes);
 router.use("/sport-type", SportTypeRoutes);
 
+
 export const IndexRoutes = router;

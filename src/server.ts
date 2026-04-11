@@ -1,16 +1,71 @@
+import { Server } from "http";
 import app from "./app";
 import { envVars } from "./app/config/env";
 import { seedSystemAdmin } from "./app/seed/systemAdmin.seed";
 
+let server: Server;
 const bootstrap = async () => {
   try {
     await seedSystemAdmin();
-    app.listen(envVars.PORT, () => {
-      console.log(`Turf Server is running on ${envVars.PORT}`);
+    server = app.listen(envVars.PORT, () => {
+      console.log(`Server is running on http://localhost:${envVars.PORT}`);
     });
   } catch (error) {
     console.error("Failed to start server:", error);
   }
 };
+
+
+process.on("SIGTERM", () => {
+  console.log("SIGTERM signal received. Shutting down server...");
+
+  if (server) {
+    server.close(() => {
+      console.log("Server closed gracefully.");
+      process.exit(1);
+    });
+  }
+
+  process.exit(1);
+});
+
+
+process.on("SIGINT", () => {
+  console.log("SIGINT signal received. Shutting down server...");
+
+  if (server) {
+    server.close(() => {
+      console.log("Server closed gracefully.");
+      process.exit(1);
+    });
+  }
+
+  process.exit(1);
+});
+
+process.on("uncaughtException", (error) => {
+  console.log("Uncaught Exception Detected... Shutting down server", error);
+
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
+
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (error) => {
+  console.log("Unhandled Rejection Detected... Shutting down server", error);
+
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
+
+  process.exit(1);
+});
+
 
 bootstrap();

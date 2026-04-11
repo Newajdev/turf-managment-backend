@@ -8,6 +8,8 @@ import { tokenUtils } from "../../utils/token";
 import { jwtUtils } from "../../utils/jwt";
 import { envVars } from "../../config/env";
 import { sendEmail } from "../../utils/email";
+import { NotificationService } from "../notification/notification.service";
+import { NotificationType } from "../../../generated/prisma/enums";
 
 const registerPlayer = async (payload: IRegisterPlayer) => {
   const { name, email, password } = payload;
@@ -53,10 +55,21 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
         status: data.user.userStatus,
         isDeleted: data.user.isDeleted,
         emailVerified: data.user.emailVerified,
+        needPasswordChange: data.user.needPasswordChange,
       };
 
       const accessToken = tokenUtils.getAccessToken(jwtPayload);
       const refreshToken = tokenUtils.getRefreshToken(jwtPayload);
+
+      const admins = await prisma.systemAdmin.findMany({ select: { userId: true } });
+      await Promise.all(admins.map(admin => 
+        NotificationService.createNotification({
+          title: "New Player Registered",
+          message: `A new player ${name} (${email}) has joined the platform.`,
+          userId: admin.userId,
+          type: NotificationType.SYSTEM
+        })
+      ));
 
       return {
         user: data.user,
@@ -175,6 +188,7 @@ const login = async (payload: ILogin) => {
     status: data.user.userStatus,
     isDeleted: data.user.isDeleted,
     emailVerified: data.user.emailVerified,
+    needPasswordChange: data.user.needPasswordChange,
   };
 
   const accessToken = tokenUtils.getAccessToken(jwtPayload);
@@ -219,6 +233,7 @@ const refreshToken = async (refreshToken: string, sessionToken: string) => {
     status: verifiedRefreshToken.data.status,
     isDeleted: verifiedRefreshToken.data.isDeleted,
     emailVerified: verifiedRefreshToken.data.emailVerified,
+    needPasswordChange: verifiedRefreshToken.data.needPasswordChange,
   };
 
   const newAccessToken = tokenUtils.getAccessToken(jwtPayload);
@@ -301,6 +316,7 @@ const changePassword = async (
     status: session.user.userStatus,
     isDeleted: session.user.isDeleted,
     emailVerified: session.user.emailVerified,
+    needPasswordChange: false, // Since it was just changed
   });
 
   const refreshToken = tokenUtils.getRefreshToken({
@@ -311,6 +327,16 @@ const changePassword = async (
     status: session.user.userStatus,
     isDeleted: session.user.isDeleted,
     emailVerified: session.user.emailVerified,
+    needPasswordChange: false,
+  });
+
+  await sendEmail({
+    to: session.user.email,
+    subject: "Security Alert: Password Changed",
+    templateName: "password-changed",
+    templateData: {
+      name: session.user.name,
+    },
   });
 
   return {

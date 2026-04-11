@@ -4,19 +4,8 @@ import { status } from "http-status";
 import { ICustomTurfSlot, ITurfSlot } from "./turfSlots.interface";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IQueryParams } from "../../interfaces/query.interface";
+import { calculateDurationInMinutes } from "../../utils/calculateTime";
 
-const calculateDurationInMinutes = (start: string, end: string) => {
-  const [startH, startM] = start.split(":").map(Number);
-  const [endH, endM] = end.split(":").map(Number);
-  
-  let duration = (endH * 60 + endM) - (startH * 60 + startM);
-  
-  if (duration <= 0) {
-    duration += 24 * 60;
-  }
-  
-  return duration;
-};
 
 const createTurfSlot = async (userId: string, payload: ITurfSlot) => {
   const turfOwner = await prisma.turfOwner.findUnique({
@@ -140,10 +129,129 @@ const deleteTurfSlot = async (userId: string, id: string) => {
   return null;
 };
 
+const updateCustomTurfSlot = async (
+  userId: string,
+  id: string,
+  payload: Partial<ICustomTurfSlot>,
+) => {
+  const player = await prisma.player.findUnique({
+    where: { userId },
+  });
+
+  if (!player) {
+    throw new AppError(status.NOT_FOUND, "Player profile not found!");
+  }
+
+  const customSlot = await prisma.customTurfSlot.findUnique({
+    where: { id },
+    include: { turf: true },
+  });
+
+  if (!customSlot || customSlot.playerId !== player.id) {
+    throw new AppError(status.NOT_FOUND, "Custom slot not found!");
+  }
+
+  if (customSlot.isBooked) {
+    throw new AppError(status.BAD_REQUEST, "Cannot update a booked slot!");
+  }
+
+  const updateData: any = { ...payload };
+
+  // If time changes, recalculate duration and price, and reset status for resubmission
+  if (payload.startTime || payload.endTime) {
+    const startTime = payload.startTime || customSlot.startTime;
+    const endTime = payload.endTime || customSlot.endTime;
+
+    const duration = calculateDurationInMinutes(startTime, endTime);
+    const price = (duration / 60) * Number(customSlot.turf.hourlyRate);
+
+    updateData.duration = duration;
+    updateData.price = price;
+    updateData.status = "PENDING"; // Reset for owner approval
+  }
+
+  const result = await prisma.customTurfSlot.update({
+    where: { id },
+    data: updateData,
+  });
+
+  return result;
+};
+
+const deleteCustomTurfSlot = async (userId: string, id: string) => {
+  const player = await prisma.player.findUnique({
+    where: { userId },
+  });
+
+  if (!player) {
+    throw new AppError(status.NOT_FOUND, "Player profile not found!");
+  }
+
+  const customSlot = await prisma.customTurfSlot.findUnique({
+    where: { id },
+  });
+
+  if (!customSlot || customSlot.playerId !== player.id) {
+    throw new AppError(status.NOT_FOUND, "Custom slot not found!");
+  }
+
+  if (customSlot.isBooked) {
+    throw new AppError(status.BAD_REQUEST, "Cannot delete a booked slot!");
+  }
+
+  const result = await prisma.customTurfSlot.update({
+    where: { id },
+    data: {
+      isDeleted: true,
+      deletedAt: new Date(),
+    },
+  });
+
+  return result;
+};
+
+const bulkCreateTurfSlots = async (userId: string, payload: { turfId: string, slotIds: string[], price: number }) => {
+  const turfOwner = await prisma.turfOwner.findUnique({
+    where: { userId },
+  });
+
+  if (!turfOwner) {
+    throw new AppError(status.NOT_FOUND, "Turf Owner profile not found!");
+  }
+
+  const turf = await prisma.turf.findUnique({
+    where: { id: payload.turfId },
+  });
+
+  if (!turf || turf.ownerId !== turfOwner.id) {
+    throw new AppError(status.FORBIDDEN, "You are not the owner of this Turf!");
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    const createdSlots = await Promise.all(
+      payload.slotIds.map((slotId) =>
+        tx.turfSlot.create({
+          data: {
+            turfId: payload.turfId,
+            slotId: slotId,
+            price: payload.price,
+          },
+        })
+      )
+    );
+    return createdSlots;
+  });
+
+  return result;
+};
+
 export const TurfSlotsService = {
   createTurfSlot,
   createCustomTurfSlot,
   getRegularSlotsByTurf,
   getCustomSlotsByPlayer,
   deleteTurfSlot,
+  bulkCreateTurfSlots,
+  updateCustomTurfSlot,
+  deleteCustomTurfSlot,
 };

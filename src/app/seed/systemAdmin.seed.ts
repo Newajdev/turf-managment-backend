@@ -35,6 +35,12 @@ export const seedSystemAdmin = async () => {
       return;
     }
 
+    // Manually verify the admin email
+    await prisma.user.update({
+      where: { id: data.user.id },
+      data: { emailVerified: true },
+    });
+
     await prisma.systemAdmin.create({
       data: {
         userId: data.user.id,

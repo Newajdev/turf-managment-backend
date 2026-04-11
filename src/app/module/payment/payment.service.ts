@@ -2,6 +2,7 @@
 import Stripe from "stripe";
 import { prisma } from "../../lib/prisma";
 import { PaymentStatus } from "../../../generated/prisma/enums";
+import { sendEmail } from "../../utils/email";
 
 const handleStripeWebhookEvent = async (event: Stripe.Event) => {
   const existingPayment = await prisma.payment.findUnique({
@@ -33,6 +34,7 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
 
       const booking = await prisma.booking.findUnique({
         where: { id: bookingId },
+        include: { player: true, turf: true }
       });
 
       if (!booking) {
@@ -66,6 +68,22 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
           },
         });
       });
+
+      if (booking && booking.player) {
+        await sendEmail({
+          to: booking.player.email,
+          subject: "Payment Success - Turf Management",
+          templateName: "payment-success",
+          templateData: {
+            playerName: booking.player.name,
+            transactionId: event.id,
+            date: new Date().toDateString(),
+            bookingId: bookingId,
+            amount: (session.amount_total || 0) / 100,
+            turfName: booking.turf.name
+          },
+        });
+      }
 
       console.log(
         `Processed checkout.session.completed for booking ID ${bookingId} with payment status ${session.payment_status}`,

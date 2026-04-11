@@ -19,8 +19,21 @@ const updateTurfSlotSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+const bulkCreateTurfSlotSchema = z.object({
+  turfId: z.string({ message: "Turf ID is required" }),
+  slotIds: z.array(z.string()).min(1, "At least one slot ID is required"),
+  price: z.number().min(0, "Price must be a positive number"),
+});
+
+const updateCustomTurfSlotSchema = z.object({
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+});
+
 export const TurfSlotValidations = {
   createTurfSlotSchema,
   createCustomTurfSlotSchema,
   updateTurfSlotSchema,
+  bulkCreateTurfSlotSchema,
+  updateCustomTurfSlotSchema,
 };

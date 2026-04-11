@@ -11,6 +11,7 @@ enum UserStatus {
 }
 
 enum BookingStatus {
+  PENDING
   CONFIRMED
   REJECTED
   CANCELLED

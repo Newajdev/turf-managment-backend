@@ -32,4 +32,16 @@ router.patch(
   BookingController.cancelBooking,
 );
 
+router.patch(
+  "/reject/:id",
+  checkAuth(Role.TURF_OWNER),
+  BookingController.rejectBooking,
+);
+
+router.patch(
+  "/accept/:id",
+  checkAuth(Role.TURF_OWNER),
+  BookingController.acceptBooking,
+);
+
 export const BookingRoutes = router;
