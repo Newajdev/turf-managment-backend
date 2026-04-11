@@ -32,9 +32,8 @@ const forgetPasswordSchema = z.object({
 });
 
 const resetPasswordSchema = z.object({
-  email: z.string({ message: "Email is required" }).email(),
-  otp: z.string({ message: "OTP is required" }).length(6),
-  password: z.string({ message: "Password is required" }).min(6).max(15),
+  oldPassword: z.string({ message: "Old Password is required" }).min(6).max(15),
+  newPassword: z.string({ message: "New Password is required" }).min(6).max(15),
 });
 
 export const AuthValidations = {

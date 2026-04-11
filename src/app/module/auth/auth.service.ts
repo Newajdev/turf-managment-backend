@@ -7,6 +7,7 @@ import { status } from "http-status";
 import { tokenUtils } from "../../utils/token";
 import { jwtUtils } from "../../utils/jwt";
 import { envVars } from "../../config/env";
+import { sendEmail } from "../../utils/email";
 
 const registerPlayer = async (payload: IRegisterPlayer) => {
   const { name, email, password } = payload;
@@ -116,15 +117,25 @@ const createTurfOwner = async (payload: ICreateTurfOwner) => {
           email,
         },
       });
-
       return turfOnwerTx;
     });
 
+    await sendEmail({
+      to: email,
+      subject: "Welcome to Turf Management - Your Account is Ready",
+      templateName: "turfOwnerCreated",
+      templateData: {
+        name,
+        email,
+        password,
+        loginUrl: `${envVars.FRONTEND_URL}/login`,
+      },
+    });
 
-      return {
-        user: data.user,
-        turfOwner,
-      };
+    return {
+      user: data.user,
+      turfOwner,
+    };
 
   } catch (error) {
     

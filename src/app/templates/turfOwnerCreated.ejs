@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f0f2f5; 
+            color: #1c1e21; 
+        }
+        .wrapper { 
+            width: 100%; 
+            background-color: #f0f2f5; 
+            padding: 40px 0; 
+        }
+        .container { 
+            width: 90%; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background-color: #ffffff; 
+            border-radius: 16px; 
+            overflow: hidden; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.05); 
+        }
+        .header { 
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); 
+            position: relative;
+            text-align: center;
+        }
+        .header img { 
+            width: 100%; 
+            height: auto; 
+            display: block;
+            opacity: 0.9;
+        }
+        .header-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(6, 78, 59, 0.2), rgba(6, 78, 59, 0.8));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            padding: 20px;
+        }
+        .header-title {
+            font-size: 28px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .content { 
+            padding: 48px; 
+        }
+        .greeting { 
+            font-size: 22px; 
+            font-weight: 700; 
+            color: #064e3b; 
+            margin-bottom: 16px; 
+        }
+        .message { 
+            font-size: 16px; 
+            line-height: 1.7; 
+            color: #4b5563; 
+            margin-bottom: 32px; 
+        }
+        .credential-card { 
+            background-color: #f9fafb; 
+            border: 1px solid #e5e7eb; 
+            border-left: 6px solid #10b981; 
+            border-radius: 12px; 
+            padding: 28px; 
+            margin-bottom: 32px; 
+        }
+        .label { 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: #9ca3af; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            margin-bottom: 6px; 
+        }
+        .value { 
+            font-size: 18px; 
+            font-weight: 600; 
+            color: #111827; 
+            font-family: 'Courier New', Courier, monospace;
+            word-break: break-all;
+        }
+        .btn-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .btn { 
+            display: inline-block; 
+            padding: 18px 42px; 
+            font-size: 16px; 
+            font-weight: 700; 
+            color: #ffffff !important; 
+            background: #10b981; 
+            text-decoration: none; 
+            border-radius: 50px; 
+            box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.39); 
+        }
+        .notice { 
+            background-color: #fffbeb; 
+            border: 1px solid #fef3c7; 
+            border-radius: 8px; 
+            padding: 16px; 
+            color: #92400e; 
+            font-size: 14px; 
+            line-height: 1.5; 
+            margin-top: 32px; 
+        }
+        .footer { 
+            padding: 32px; 
+            text-align: center; 
+            background-color: #f9fafb; 
+            font-size: 12px; 
+            color: #6b7280; 
+            border-top: 1px solid #f3f4f6; 
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="header">
+                <img src="https://images.unsplash.com/photo-1551958219-acbc608c6377?q=80&w=1200&auto=format&fit=crop" alt="Partner Portal Header">
+                <div class="header-overlay">
+                    <div class="header-title">Partner Portal</div>
+                </div>
+            </div>
+            <div class="content">
+                <div class="greeting">Hello <%= name %>,</div>
+                <p class="message">
+                    Welcome to the Turf Management community! Your Turf Owner account has been successfully created. You can now start listing your turfs and managing bookings.
+                </p>
+                
+                <div class="credential-card">
+                    <div style="margin-bottom: 20px;">
+                        <div class="label">Your Login Email</div>
+                        <div class="value"><%= email %></div>
+                    </div>
+                    <div>
+                        <div class="label">Temporary Password</div>
+                        <div class="value"><%= password %></div>
+                    </div>
+                </div>
+
+                <div class="btn-container">
+                    <a href="<%= loginUrl %>" class="btn">Login to Your Account</a>
+                </div>
+
+                <div class="notice">
+                    <strong>⚠️ Action Required:</strong> For security reasons, you <strong>must change your password</strong> immediately after your first login to keep your account safe.
+                </div>
+            </div>
+            <div class="footer">
+                &copy; 2026 Turf Booking Management System<br>
+                Empowering sports facility owners worldwide.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

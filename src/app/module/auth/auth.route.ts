@@ -24,14 +24,16 @@ router.post(
   validateRequest(AuthValidations.loginSchema),
   AuthController.login,
 );
-router.post("/refresh-token", AuthController.refreshToken);
-router.post("/logout", AuthController.logout);
+router.post("/refresh-token",checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN), AuthController.refreshToken);
+router.post("/logout",checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN), AuthController.logout);
+router.post("/change-password",checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN), AuthController.changePassword);
 
 router.post(
   "/forgot-password",
   validateRequest(AuthValidations.forgetPasswordSchema),
   AuthController.forgotPassword,
 );
+
 
 router.post(
   "/reset-password",

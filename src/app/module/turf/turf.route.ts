@@ -30,13 +30,13 @@ router.post(
 
 router.get(
   "/",
-  checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),
+  // checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),
   TurfController.getAllTurfs,
 );
 
 router.get(
   "/:id",
-  checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),
+  // heckAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),
   TurfController.getSingleTurf,
 );
 

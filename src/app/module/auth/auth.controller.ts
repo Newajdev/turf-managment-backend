@@ -6,6 +6,7 @@ import status from "http-status";
 import { tokenUtils } from "../../utils/token";
 import { CookieUtils } from "../../utils/cookie";
 import AppError from "../../errorHelpers/AppError";
+import { sendEmail } from "../../utils/email";
 
 const registerPlayer = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.registerPlayer(req.body);
@@ -33,6 +34,17 @@ const registerPlayer = catchAsync(async (req: Request, res: Response) => {
 
 const createTurfOwner = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.createTurfOwner(req.body);
+
+  sendEmail({
+    to: result.user.email,
+    subject: "Turf Owner Created Successfully",
+    templateName: "turfOwnerCreated",
+    templateData: {
+      name: result.user.name,
+      email: result.user.email,
+      password: req.body.password,
+    },
+  });
   
 
   sendResponse(res, {
@@ -125,6 +137,15 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
     payload,
     betterAuthSessionToken,
   );
+
+  sendEmail({
+    to: result.user.email,
+    subject: "Password Changed Successfully",
+    templateName: "password-changed",
+    templateData: {
+      name: result.user.name,
+    },
+  });
 
   const { accessToken, refreshToken, token } = result;
 
