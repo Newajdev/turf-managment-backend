@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
 import { status } from "http-status";
 import { IBooking } from "./booking.interface";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IQueryParams } from "../../interfaces/query.interface";
+import { BookingStatus } from "../../../generated/prisma/enums";
 
 const createBooking = async (userId: string, payload: IBooking) => {
   const player = await prisma.player.findUnique({
@@ -31,6 +33,7 @@ const createBooking = async (userId: string, payload: IBooking) => {
 
   // 2. Existence Check for Regular Slots
   if (payload.turfSlotId) {
+    
     const turfSlot = await prisma.turfSlot.findUnique({
       where: { id: payload.turfSlotId },
     });
@@ -38,6 +41,7 @@ const createBooking = async (userId: string, payload: IBooking) => {
     if (!turfSlot) {
       throw new AppError(status.NOT_FOUND, "Turf slot not found!");
     }
+
   }
 
   // 3. Availability Check
@@ -52,7 +56,7 @@ const createBooking = async (userId: string, payload: IBooking) => {
         { customSlotId: payload.customSlotId },
       ],
       status: {
-         notIn: ['CANCELLED', 'REJECTED'],
+        notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED],
       },
     },
   });
@@ -151,7 +155,7 @@ const getTurfBookings = async (userId: string, turfId: string, query: IQueryPara
 };
 
 const cancelBooking = async (userId: string, bookingId: string) => {
-    // Determine if requester is player or owner
+  
     const player = await prisma.player.findUnique({ where: { userId } });
     const owner = await prisma.turfOwner.findUnique({ where: { userId } });
 

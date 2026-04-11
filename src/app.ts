@@ -8,6 +8,7 @@ import { envVars } from "./app/config/env";
 import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./app/lib/auth";
+import { PaymentController } from "./app/module/payment/payment.controller";
 
 
 
@@ -32,6 +33,8 @@ app.use(
 );
 
 app.use("/api/auth", toNodeHandler(auth));
+
+app.post("/webhook", express.raw({ type: "application/json" }), PaymentController.handleStripeWebhookEvent);
 
 // Middleware to parse JSON bodies
 app.use(express.json());

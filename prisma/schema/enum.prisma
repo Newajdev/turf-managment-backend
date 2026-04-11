@@ -18,10 +18,10 @@ enum BookingStatus {
 }
 
 enum PaymentStatus {
-  PENDING
-  SUCCESS
-  FAILED
-  REFUNDED
+ UNPAID
+ PAID
+ REFUNDED
+ FAILED
 }
 
 enum SlotType {

@@ -2,6 +2,7 @@ model Booking {
   id     String        @id @default(uuid(7))
   date   DateTime      @db.Date
   status BookingStatus @default(CONFIRMED)
+  paymentStatus PaymentStatus @default(UNPAID)
 
   playerId String
   player   Player @relation(fields: [playerId], references: [id], onDelete: Restrict)
