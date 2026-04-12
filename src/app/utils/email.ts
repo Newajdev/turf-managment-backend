@@ -6,6 +6,8 @@ import path from "path";
 import { envVars } from "../config/env";
 import AppError from "../errorHelpers/AppError";
 
+import { emailTemplates } from "../templates/emailTemplates";
+
 const transporter = nodemailer.createTransport({
   host: envVars.EMAIL_SENDER_SMTP_HOST,
   secure: true,
@@ -30,12 +32,13 @@ export const sendEmail = async ({
   to,
 }: SendEmailOptions) => {
   try {
-    const templatePath = path.resolve(
-      process.cwd(),
-      `src/app/templates/${templateName}.ejs`,
-    );
+    const templateString = emailTemplates[templateName];
 
-    const html = await ejs.renderFile(templatePath, templateData);
+    if (!templateString) {
+      throw new Error(`Template ${templateName} not found`);
+    }
+
+    const html = ejs.render(templateString, templateData);
 
     await transporter.sendMail({
       from: envVars.EMAIL_SENDER_SMTP_FROM,

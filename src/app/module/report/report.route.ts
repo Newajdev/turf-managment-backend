@@ -18,6 +18,6 @@ router.get("/", checkAuth(Role.SYSTEM_ADMIN), ReportController.getAllReports);
 
 router.get("/my-reports", checkAuth(Role.PLAYER), ReportController.getMyReports);
 
-router.delete("/:id", checkAuth(Role.PLAYER, Role.SYSTEM_ADMIN), ReportController.deleteReport);
+router.delete("/:id", checkAuth(Role.SYSTEM_ADMIN), ReportController.deleteReport);
 
 export const ReportRoutes = router;

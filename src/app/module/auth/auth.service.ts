@@ -1,7 +1,7 @@
 import { Role, UserStatus } from "../../../generated/prisma/enums";
 import { auth } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
-import { IRegisterPlayer, ICreateTurfOwner, ILogin, IChangePassword, IForgotPassword, IResetPassword } from "./auth.interface";
+import { IRegisterPlayer, ICreateTurfOwner, ILogin, IChangePassword, IVerifyEmail } from "./auth.interface";
 import AppError from "../../errorHelpers/AppError";
 import { status } from "http-status";
 import { tokenUtils } from "../../utils/token";
@@ -33,7 +33,7 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
     throw new AppError(status.BAD_REQUEST, "Failed to create user");
   }
 
-  
+
   try {
     const player = await prisma.$transaction(async (tx) => {
       const playerTx = await tx.player.create({
@@ -47,37 +47,37 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
       return playerTx
     });
 
-      const jwtPayload = {
-        userId: data.user.id,
-        email: data.user.email,
-        role: data.user.role,
-        name: data.user.name,
-        status: data.user.userStatus,
-        isDeleted: data.user.isDeleted,
-        emailVerified: data.user.emailVerified,
-        needPasswordChange: data.user.needPasswordChange,
-      };
+    const jwtPayload = {
+      userId: data.user.id,
+      email: data.user.email,
+      role: data.user.role,
+      name: data.user.name,
+      status: data.user.userStatus,
+      isDeleted: data.user.isDeleted,
+      emailVerified: data.user.emailVerified,
+      needPasswordChange: data.user.needPasswordChange,
+    };
 
-      const accessToken = tokenUtils.getAccessToken(jwtPayload);
-      const refreshToken = tokenUtils.getRefreshToken(jwtPayload);
+    const accessToken = tokenUtils.getAccessToken(jwtPayload);
+    const refreshToken = tokenUtils.getRefreshToken(jwtPayload);
 
-      const admins = await prisma.systemAdmin.findMany({ select: { userId: true } });
-      await Promise.all(admins.map(admin => 
-        NotificationService.createNotification({
-          title: "New Player Registered",
-          message: `A new player ${name} (${email}) has joined the platform.`,
-          userId: admin.userId,
-          type: NotificationType.SYSTEM
-        })
-      ));
+    const admins = await prisma.systemAdmin.findMany({ select: { userId: true } });
+    await Promise.all(admins.map(admin =>
+      NotificationService.createNotification({
+        title: "New Player Registered",
+        message: `A new player ${name} (${email}) has joined the platform.`,
+        userId: admin.userId,
+        type: NotificationType.SYSTEM
+      })
+    ));
 
-      return {
-        user: data.user,
-        betterAuthToken: data.token,
-        accessToken,
-        refreshToken,
-        player,
-      };
+    return {
+      user: data.user,
+      betterAuthToken: data.token,
+      accessToken,
+      refreshToken,
+      player,
+    };
 
   } catch (error) {
     await prisma.user.delete({
@@ -89,7 +89,7 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
     throw error;
   }
 
-  
+
 };
 
 const createTurfOwner = async (payload: ICreateTurfOwner) => {
@@ -123,7 +123,7 @@ const createTurfOwner = async (payload: ICreateTurfOwner) => {
 
   try {
     const turfOwner = await prisma.$transaction(async (tx) => {
-      const turfOnwerTx =  await tx.turfOwner.create({
+      const turfOnwerTx = await tx.turfOwner.create({
         data: {
           userId: data.user.id,
           name,
@@ -151,7 +151,7 @@ const createTurfOwner = async (payload: ICreateTurfOwner) => {
     };
 
   } catch (error) {
-    
+
     await prisma.user.delete({
       where: {
         id: data.user.id,
@@ -161,7 +161,7 @@ const createTurfOwner = async (payload: ICreateTurfOwner) => {
     throw error;
   }
 
-  
+
 };
 
 const login = async (payload: ILogin) => {
@@ -238,7 +238,7 @@ const refreshToken = async (refreshToken: string, sessionToken: string) => {
 
   const newAccessToken = tokenUtils.getAccessToken(jwtPayload);
   const newRefreshToken = tokenUtils.getRefreshToken(jwtPayload);
-  
+
 
   const { token } = await prisma.session.update({
     where: {
@@ -279,7 +279,7 @@ const changePassword = async (
     }),
   });
 
-  
+
   if (!session) {
     throw new AppError(status.UNAUTHORIZED, "Invalid session token");
   }
@@ -346,27 +346,168 @@ const changePassword = async (
   };
 };
 
-const forgotPassword = async (payload: IForgotPassword) => {
+const forgotPassword = async (email: string) => {
+  const isUserExist = await prisma.user.findUnique({
+    where: {
+      email,
+    }
+  })
+
+  if (!isUserExist) {
+    throw new AppError(status.NOT_FOUND, "User not found");
+  }
+
+  if (!isUserExist.emailVerified) {
+    throw new AppError(status.BAD_REQUEST, "Email not verified");
+  }
+
+  if (isUserExist.isDeleted || isUserExist.userStatus === UserStatus.DELETED) {
+    throw new AppError(status.NOT_FOUND, "User not found");
+  }
+
+  await auth.api.requestPasswordResetEmailOTP({
+    body: {
+      email,
+    }
+  })
+}
+
+
+
+const verifyEmail = async (payload: IVerifyEmail) => {
+  const { email, otp } = payload;
+
+  const result = await auth.api.verifyEmailOTP({
+    body: {
+      email,
+      otp,
+    }
+  })
+
+  if (result.status && !result.user.emailVerified) {
+    await prisma.user.update({
+      where: {
+        email,
+      },
+      data: {
+        emailVerified: true,
+      }
+    })
+  }
+}
+
+const resendVerificationOTP = async (payload: { email: string }) => {
   const { email } = payload;
+
+  const isUserExist = await prisma.user.findUnique({
+    where: {
+      email,
+    }
+  })
+
+  if (!isUserExist) {
+    throw new AppError(status.NOT_FOUND, "User not found");
+  }
+
+  if (!isUserExist.emailVerified) {
+    throw new AppError(status.BAD_REQUEST, "Email not verified");
+  }
+
+  if (isUserExist.isDeleted || isUserExist.userStatus === UserStatus.DELETED) {
+    throw new AppError(status.NOT_FOUND, "User not found");
+  }
+
   const result = await auth.api.sendVerificationOTP({
     body: {
       email,
-      type: "forget-password",
+      type: "email-verification",
     },
   });
   return result;
 };
 
-const resetPassword = async (payload: IResetPassword) => {
-  const { otp, password } = payload;
-  const result = await auth.api.resetPassword({
+const resetPassword = async (email: string, otp: string, newPassword: string) => {
+  const isUserExist = await prisma.user.findUnique({
+    where: {
+      email,
+    }
+  })
+
+  if (!isUserExist) {
+    throw new AppError(status.NOT_FOUND, "User not found");
+  }
+
+  if (!isUserExist.emailVerified) {
+    throw new AppError(status.BAD_REQUEST, "Email not verified");
+  }
+
+  if (isUserExist.isDeleted || isUserExist.userStatus === UserStatus.DELETED) {
+    throw new AppError(status.NOT_FOUND, "User not found");
+  }
+
+  await auth.api.resetPasswordEmailOTP({
     body: {
-      newPassword: password,
-      token: otp,
-    },
+      email,
+      otp,
+      password: newPassword,
+    }
+  })
+
+  if (isUserExist.needPasswordChange) {
+    await prisma.user.update({
+      where: {
+        id: isUserExist.id,
+      },
+      data: {
+        needPasswordChange: false,
+      }
+    })
+  }
+
+  await prisma.session.deleteMany({
+    where: {
+      userId: isUserExist.id,
+    }
+  })
+}
+
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const googleLoginSuccess = async (session: Record<string, any>) => {
+  const isPlayerExists = await prisma.player.findUnique({
+    where: {
+      userId: session.user.id,
+    }
+  })
+
+  if (!isPlayerExists) {
+    await prisma.player.create({
+      data: {
+        userId: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+      }
+
+    })
+  }
+
+  const accessToken = tokenUtils.getAccessToken({
+    userId: session.user.id,
+    role: session.user.role,
+    name: session.user.name,
   });
-  return result;
-};
+
+  const refreshToken = tokenUtils.getRefreshToken({
+    userId: session.user.id,
+    role: session.user.role,
+    name: session.user.name,
+  });
+
+  return {
+    accessToken,
+    refreshToken,
+  }
+}
 
 export const AuthService = {
   registerPlayer,
@@ -376,5 +517,8 @@ export const AuthService = {
   logout,
   changePassword,
   forgotPassword,
+  verifyEmail,
+  resendVerificationOTP,
   resetPassword,
+  googleLoginSuccess,
 };

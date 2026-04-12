@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "build": "tsc",
+    "build:tsup": "tsup",
     "dev": "tsx watch src/server.ts",
     "lint": "eslint ./src/**/*",
     "migrate": "prisma migrate dev",
@@ -39,7 +40,9 @@
     "nodemailer": "^8.0.4",
     "pg": "^8.20.0",
     "stripe": "^22.0.1",
+    "tsup": "^8.5.1",
     "uuid": "^13.0.0",
+    "vercel": "^50.44.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

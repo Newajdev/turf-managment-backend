@@ -7,6 +7,8 @@ import { tokenUtils } from "../../utils/token";
 import { CookieUtils } from "../../utils/cookie";
 import AppError from "../../errorHelpers/AppError";
 import { sendEmail } from "../../utils/email";
+import { envVars } from "../../config/env";
+import { auth } from "../../lib/auth";
 
 const registerPlayer = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.registerPlayer(req.body);
@@ -34,18 +36,6 @@ const registerPlayer = catchAsync(async (req: Request, res: Response) => {
 
 const createTurfOwner = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.createTurfOwner(req.body);
-
-  sendEmail({
-    to: result.user.email,
-    subject: "Turf Owner Created Successfully",
-    templateName: "turfOwnerCreated",
-    templateData: {
-      name: result.user.name,
-      email: result.user.email,
-      password: req.body.password,
-    },
-  });
-  
 
   sendResponse(res, {
     httpStatusCode: status.CREATED,
@@ -162,10 +152,9 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
 });
 
 
-
-
 const forgotPassword = catchAsync(async (req: Request, res: Response) => {
-  const result = await AuthService.forgotPassword(req.body);
+  const { email } = req.body;
+  const result = await AuthService.forgotPassword(email);
 
   sendResponse(res, {
     httpStatusCode: status.OK,
@@ -175,8 +164,32 @@ const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const verifyEmail = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.verifyEmail(req.body);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Email verified successfully",
+    data: result,
+  });
+});
+
+const resendVerificationOTP = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthService.resendVerificationOTP(req.body);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Verification OTP resent successfully",
+    data: result,
+  });
+});
+
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
-  const result = await AuthService.resetPassword(req.body);
+  const { email, otp, password } = req.body;
+
+  const result = await AuthService.resetPassword(email, otp, password);
 
   sendResponse(res, {
     httpStatusCode: status.OK,
@@ -186,6 +199,80 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+const googleLogin = catchAsync((req: Request, res: Response) => {
+  const redirectPath = (req.query.redirect as string) || "/dashboard";
+  const encodedRedirectPath = encodeURIComponent(redirectPath);
+  const callbackURL = `${envVars.BETTER_AUTH_URL}/api/v1/auth/google/success?redirect=${encodedRedirectPath}`;
+
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Redirecting...</title>
+        <style>
+            body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f4f7f6; }
+            .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite; margin-bottom: 20px; }
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            .container { text-align: center; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="loader" style="margin: 0 auto 20px;"></div>
+            <p>Redirecting you to Google...</p>
+        </div>
+        <script>
+            window.location.href = "${callbackURL}";
+        </script>
+    </body>
+    </html>
+  `);
+});
+
+const googleLoginSuccess = catchAsync(async (req: Request, res: Response) => {
+  const redirectPath = req.query.redirect as string || "/dashboard";
+
+  const sessionToken = req.cookies["better-auth.session_token"];
+
+  if (!sessionToken) {
+    return res.redirect(`${envVars.FRONTEND_URL}/login?error=oauth_failed`);
+  }
+
+  const session = await auth.api.getSession({
+    headers: {
+      "Cookie": `better-auth.session_token=${sessionToken}`
+    }
+  })
+
+  if (!session) {
+    return res.redirect(`${envVars.FRONTEND_URL}/login?error=no_session_found`);
+  }
+
+
+  if (session && !session.user) {
+    return res.redirect(`${envVars.FRONTEND_URL}/login?error=no_user_found`);
+  }
+
+  const result = await AuthService.googleLoginSuccess(session);
+
+  const { accessToken, refreshToken } = result;
+
+  tokenUtils.setAccessTokenCookie(res, accessToken);
+  tokenUtils.setRefreshTokenCookie(res, refreshToken);
+  const isValidRedirectPath = redirectPath.startsWith("/") && !redirectPath.startsWith("//");
+  const finalRedirectPath = isValidRedirectPath ? redirectPath : "/dashboard";
+
+  res.redirect(`${envVars.FRONTEND_URL}${finalRedirectPath}`);
+})
+
+const handleOAuthError = catchAsync((req: Request, res: Response) => {
+  const error = req.query.error as string || "oauth_failed";
+  res.redirect(`${envVars.FRONTEND_URL}/login?error=${error}`);
+})
+
 export const AuthController = {
   registerPlayer,
   createTurfOwner,
@@ -194,5 +281,10 @@ export const AuthController = {
   logout,
   changePassword,
   forgotPassword,
+  verifyEmail,
+  resendVerificationOTP,
   resetPassword,
+  googleLoginSuccess,
+  googleLogin,
+  handleOAuthError,
 };

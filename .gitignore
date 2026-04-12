@@ -9,3 +9,4 @@ artifacts
 /src/generated
 
 /generated/prisma
+.vercel

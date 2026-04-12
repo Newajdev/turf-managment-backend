@@ -28,8 +28,14 @@ export interface IForgotPassword {
   email: string;
 }
 
+export interface IVerifyEmail {
+  email: string;
+  otp: string;
+}
+
 export interface IResetPassword {
   email: string;
   otp: string;
-  password: string;
+  Password: string;
 }
+
