@@ -41,8 +41,7 @@ const createTurfOwner = catchAsync(async (req: Request, res: Response) => {
     httpStatusCode: status.CREATED,
     success: true,
     message: "Turf Owner created successfully",
-    data: result
-    ,
+    data: result,
   });
 });
 
@@ -114,7 +113,6 @@ const logout = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 const changePassword = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   const betterAuthSessionToken = req.cookies["better-auth.session_token"];
@@ -151,7 +149,6 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-
 const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   const { email } = req.body;
   const result = await AuthService.forgotPassword(email);
@@ -167,6 +164,12 @@ const forgotPassword = catchAsync(async (req: Request, res: Response) => {
 const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.verifyEmail(req.body);
 
+  const { accessToken, refreshToken, token } = result;
+
+  tokenUtils.setAccessTokenCookie(res, accessToken);
+  tokenUtils.setRefreshTokenCookie(res, refreshToken);
+  tokenUtils.setBetterAuthSessionCookie(res, token as string);
+
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
@@ -175,16 +178,18 @@ const verifyEmail = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const resendVerificationOTP = catchAsync(async (req: Request, res: Response) => {
-  const result = await AuthService.resendVerificationOTP(req.body);
+const resendVerificationOTP = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await AuthService.resendVerificationOTP(req.body);
 
-  sendResponse(res, {
-    httpStatusCode: status.OK,
-    success: true,
-    message: "Verification OTP resent successfully",
-    data: result,
-  });
-});
+    sendResponse(res, {
+      httpStatusCode: status.OK,
+      success: true,
+      message: "Verification OTP resent successfully",
+      data: result,
+    });
+  },
+);
 
 const resetPassword = catchAsync(async (req: Request, res: Response) => {
   const { email, otp, password } = req.body;
@@ -198,7 +203,6 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-
 
 const googleLogin = catchAsync((req: Request, res: Response) => {
   const redirectPath = (req.query.redirect as string) || "/dashboard";
@@ -233,27 +237,32 @@ const googleLogin = catchAsync((req: Request, res: Response) => {
 });
 
 const googleLoginSuccess = catchAsync(async (req: Request, res: Response) => {
-  const redirectPath = req.query.redirect as string || "/dashboard";
+  const redirectPath = (req.query.redirect as string) || "/dashboard";
 
   const sessionToken = req.cookies["better-auth.session_token"];
 
   if (!sessionToken) {
-    return res.redirect(`${envVars.FRONTEND_URL}/login?error=oauth_failed`);
+    return res.redirect(
+      `${envVars.FRONTEND_URL}/auth/login?error=oauth_failed`,
+    );
   }
 
   const session = await auth.api.getSession({
     headers: {
-      "Cookie": `better-auth.session_token=${sessionToken}`
-    }
-  })
+      Cookie: `better-auth.session_token=${sessionToken}`,
+    },
+  });
 
   if (!session) {
-    return res.redirect(`${envVars.FRONTEND_URL}/login?error=no_session_found`);
+    return res.redirect(
+      `${envVars.FRONTEND_URL}/auth/login?error=no_session_found`,
+    );
   }
 
-
   if (session && !session.user) {
-    return res.redirect(`${envVars.FRONTEND_URL}/login?error=no_user_found`);
+    return res.redirect(
+      `${envVars.FRONTEND_URL}/auth/login?error=no_user_found`,
+    );
   }
 
   const result = await AuthService.googleLoginSuccess(session);
@@ -262,16 +271,17 @@ const googleLoginSuccess = catchAsync(async (req: Request, res: Response) => {
 
   tokenUtils.setAccessTokenCookie(res, accessToken);
   tokenUtils.setRefreshTokenCookie(res, refreshToken);
-  const isValidRedirectPath = redirectPath.startsWith("/") && !redirectPath.startsWith("//");
+  const isValidRedirectPath =
+    redirectPath.startsWith("/") && !redirectPath.startsWith("//");
   const finalRedirectPath = isValidRedirectPath ? redirectPath : "/dashboard";
 
   res.redirect(`${envVars.FRONTEND_URL}${finalRedirectPath}`);
-})
+});
 
 const handleOAuthError = catchAsync((req: Request, res: Response) => {
-  const error = req.query.error as string || "oauth_failed";
-  res.redirect(`${envVars.FRONTEND_URL}/login?error=${error}`);
-})
+  const error = (req.query.error as string) || "oauth_failed";
+  res.redirect(`${envVars.FRONTEND_URL}/auth/login?error=${error}`);
+});
 
 export const AuthController = {
   registerPlayer,

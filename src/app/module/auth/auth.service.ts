@@ -1,7 +1,13 @@
 import { Role, UserStatus } from "../../../generated/prisma/enums";
 import { auth } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
-import { IRegisterPlayer, ICreateTurfOwner, ILogin, IChangePassword, IVerifyEmail } from "./auth.interface";
+import {
+  IRegisterPlayer,
+  ICreateTurfOwner,
+  ILogin,
+  IChangePassword,
+  IVerifyEmail,
+} from "./auth.interface";
 import AppError from "../../errorHelpers/AppError";
 import { status } from "http-status";
 import { tokenUtils } from "../../utils/token";
@@ -15,7 +21,7 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
   const { name, email, password } = payload;
 
   const existingUser = await prisma.user.findUnique({
-    where: { email }
+    where: { email },
   });
 
   if (existingUser) {
@@ -33,7 +39,6 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
     throw new AppError(status.BAD_REQUEST, "Failed to create user");
   }
 
-
   try {
     const player = await prisma.$transaction(async (tx) => {
       const playerTx = await tx.player.create({
@@ -44,7 +49,7 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
         },
       });
 
-      return playerTx
+      return playerTx;
     });
 
     const jwtPayload = {
@@ -61,15 +66,19 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
     const accessToken = tokenUtils.getAccessToken(jwtPayload);
     const refreshToken = tokenUtils.getRefreshToken(jwtPayload);
 
-    const admins = await prisma.systemAdmin.findMany({ select: { userId: true } });
-    await Promise.all(admins.map(admin =>
-      NotificationService.createNotification({
-        title: "New Player Registered",
-        message: `A new player ${name} (${email}) has joined the platform.`,
-        userId: admin.userId,
-        type: NotificationType.SYSTEM
-      })
-    ));
+    const admins = await prisma.systemAdmin.findMany({
+      select: { userId: true },
+    });
+    await Promise.all(
+      admins.map((admin) =>
+        NotificationService.createNotification({
+          title: "New Player Registered",
+          message: `A new player ${name} (${email}) has joined the platform.`,
+          userId: admin.userId,
+          type: NotificationType.SYSTEM,
+        }),
+      ),
+    );
 
     return {
       user: data.user,
@@ -78,7 +87,6 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
       refreshToken,
       player,
     };
-
   } catch (error) {
     await prisma.user.delete({
       where: {
@@ -88,15 +96,13 @@ const registerPlayer = async (payload: IRegisterPlayer) => {
 
     throw error;
   }
-
-
 };
 
 const createTurfOwner = async (payload: ICreateTurfOwner) => {
   const { name, email, password } = payload;
 
   const existingUser = await prisma.user.findUnique({
-    where: { email }
+    where: { email },
   });
 
   if (existingUser) {
@@ -119,7 +125,6 @@ const createTurfOwner = async (payload: ICreateTurfOwner) => {
   if (!data.user) {
     throw new AppError(status.BAD_REQUEST, "Failed to create user");
   }
-
 
   try {
     const turfOwner = await prisma.$transaction(async (tx) => {
@@ -149,9 +154,7 @@ const createTurfOwner = async (payload: ICreateTurfOwner) => {
       user: data.user,
       turfOwner,
     };
-
   } catch (error) {
-
     await prisma.user.delete({
       where: {
         id: data.user.id,
@@ -160,8 +163,6 @@ const createTurfOwner = async (payload: ICreateTurfOwner) => {
 
     throw error;
   }
-
-
 };
 
 const login = async (payload: ILogin) => {
@@ -239,7 +240,6 @@ const refreshToken = async (refreshToken: string, sessionToken: string) => {
   const newAccessToken = tokenUtils.getAccessToken(jwtPayload);
   const newRefreshToken = tokenUtils.getRefreshToken(jwtPayload);
 
-
   const { token } = await prisma.session.update({
     where: {
       token: sessionToken,
@@ -272,13 +272,11 @@ const changePassword = async (
   payload: IChangePassword,
   sessionToken: string,
 ) => {
-
   const session = await auth.api.getSession({
     headers: new Headers({
       Authorization: `Bearer ${sessionToken}`,
     }),
   });
-
 
   if (!session) {
     throw new AppError(status.UNAUTHORIZED, "Invalid session token");
@@ -350,8 +348,8 @@ const forgotPassword = async (email: string) => {
   const isUserExist = await prisma.user.findUnique({
     where: {
       email,
-    }
-  })
+    },
+  });
 
   if (!isUserExist) {
     throw new AppError(status.NOT_FOUND, "User not found");
@@ -368,11 +366,9 @@ const forgotPassword = async (email: string) => {
   await auth.api.requestPasswordResetEmailOTP({
     body: {
       email,
-    }
-  })
-}
-
-
+    },
+  });
+};
 
 const verifyEmail = async (payload: IVerifyEmail) => {
   const { email, otp } = payload;
@@ -381,8 +377,9 @@ const verifyEmail = async (payload: IVerifyEmail) => {
     body: {
       email,
       otp,
-    }
-  })
+    },
+  });
+
 
   if (result.status && !result.user.emailVerified) {
     await prisma.user.update({
@@ -391,10 +388,30 @@ const verifyEmail = async (payload: IVerifyEmail) => {
       },
       data: {
         emailVerified: true,
-      }
-    })
+      },
+    });
   }
-}
+
+  const jwtPayload = {
+    userId: result.user.id,
+    email: result.user.email,
+    role: result.user.role,
+    name: result.user.name,
+    status: result.user.userStatus,
+    isDeleted: result.user.isDeleted,
+    emailVerified: result.user.emailVerified,
+    needPasswordChange: result.user.needPasswordChange,
+  };
+
+  const accessToken = tokenUtils.getAccessToken(jwtPayload);
+  const refreshToken = tokenUtils.getRefreshToken(jwtPayload);
+
+  return {
+    ...result,
+    accessToken,
+    refreshToken,
+  };
+};
 
 const resendVerificationOTP = async (payload: { email: string }) => {
   const { email } = payload;
@@ -402,15 +419,11 @@ const resendVerificationOTP = async (payload: { email: string }) => {
   const isUserExist = await prisma.user.findUnique({
     where: {
       email,
-    }
-  })
+    },
+  });
 
   if (!isUserExist) {
     throw new AppError(status.NOT_FOUND, "User not found");
-  }
-
-  if (!isUserExist.emailVerified) {
-    throw new AppError(status.BAD_REQUEST, "Email not verified");
   }
 
   if (isUserExist.isDeleted || isUserExist.userStatus === UserStatus.DELETED) {
@@ -426,12 +439,16 @@ const resendVerificationOTP = async (payload: { email: string }) => {
   return result;
 };
 
-const resetPassword = async (email: string, otp: string, newPassword: string) => {
+const resetPassword = async (
+  email: string,
+  otp: string,
+  newPassword: string,
+) => {
   const isUserExist = await prisma.user.findUnique({
     where: {
       email,
-    }
-  })
+    },
+  });
 
   if (!isUserExist) {
     throw new AppError(status.NOT_FOUND, "User not found");
@@ -450,8 +467,8 @@ const resetPassword = async (email: string, otp: string, newPassword: string) =>
       email,
       otp,
       password: newPassword,
-    }
-  })
+    },
+  });
 
   if (isUserExist.needPasswordChange) {
     await prisma.user.update({
@@ -460,25 +477,24 @@ const resetPassword = async (email: string, otp: string, newPassword: string) =>
       },
       data: {
         needPasswordChange: false,
-      }
-    })
+      },
+    });
   }
 
   await prisma.session.deleteMany({
     where: {
       userId: isUserExist.id,
-    }
-  })
-}
-
+    },
+  });
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const googleLoginSuccess = async (session: Record<string, any>) => {
   const isPlayerExists = await prisma.player.findUnique({
     where: {
       userId: session.user.id,
-    }
-  })
+    },
+  });
 
   if (!isPlayerExists) {
     await prisma.player.create({
@@ -486,9 +502,8 @@ const googleLoginSuccess = async (session: Record<string, any>) => {
         userId: session.user.id,
         name: session.user.name,
         email: session.user.email,
-      }
-
-    })
+      },
+    });
   }
 
   const accessToken = tokenUtils.getAccessToken({
@@ -506,8 +521,8 @@ const googleLoginSuccess = async (session: Record<string, any>) => {
   return {
     accessToken,
     refreshToken,
-  }
-}
+  };
+};
 
 export const AuthService = {
   registerPlayer,
