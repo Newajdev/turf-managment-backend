@@ -2,14 +2,15 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
 import { Role, UserStatus } from "../../generated/prisma/enums";
-import { bearer, emailOTP, oAuthProxy } from "better-auth/plugins";
+import { bearer, emailOTP } from "better-auth/plugins";
 import { sendEmail } from "../utils/email";
 import { envVars } from "../config/env";
 
 export const auth = betterAuth({
   baseURL: envVars.BETTER_AUTH_URL,
   secret: envVars.BETTER_AUTH_SECRET,
-  trustedOrigins: [envVars.FRONTEND_URL],
+  trustedOrigins: [envVars.FRONTEND_URL, envVars.BETTER_AUTH_URL],
+
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -17,6 +18,30 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
+  },
+
+  socialProviders: {
+    google: {
+      clientId: envVars.GOOGLE_CLIENT_ID,
+      clientSecret: envVars.GOOGLE_SECRET,
+      callbackUrl: envVars.GOOGLE_CALLBACK_URL,
+      mapProfileToUser: () => {
+        return {
+          role: Role.PLAYER,
+          status: UserStatus.ACTIVE,
+          needPasswordChange: false,
+          emailVerified: true,
+          isDeleted: false,
+          deletedAt: null,
+        };
+      },
+    },
+  },
+
+  emailVerification: {
+    sendOnSignIn: true,
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
   },
 
   user: {
@@ -49,37 +74,7 @@ export const auth = betterAuth({
     },
   },
 
-  emailVerification: {
-    sendOnSignIn: true,
-    sendOnSignUp: true,
-    autoSignInAfterVerification: true,
-  },
-
-  advanced: {
-    cookies: {
-      session_token: {
-        name: "session_token", // Force this exact name
-        attributes: {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
-          partitioned: true,
-        },
-      },
-      state: {
-        name: "session_token", // Force this exact name
-        attributes: {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
-          partitioned: true,
-        },
-      },
-    },
-  },
-
   plugins: [
-    oAuthProxy(),
     bearer(),
     emailOTP({
       overrideDefaultEmailVerification: true,
@@ -147,20 +142,24 @@ export const auth = betterAuth({
     },
   },
 
-  socialProviders: {
-    google: {
-      clientId: envVars.GOOGLE_CLIENT_ID,
-      clientSecret: envVars.GOOGLE_SECRET,
-      // callbackUrl: envVars.GOOGLE_CALLBACK_URL,
-      mapProfileToUser: () => {
-        return {
-          role: Role.PLAYER,
-          status: UserStatus.ACTIVE,
-          needPasswordChange: false,
-          emailVerified: true,
-          isDeleted: false,
-          deletedAt: null,
-        };
+  advanced: {
+    useSecureCookies: false,
+    cookies: {
+      state: {
+        attributes: {
+          sameSite: "none",
+          secure: true,
+          httpOnly: true,
+          path: "/",
+        },
+      },
+      sessionToken: {
+        attributes: {
+          sameSite: "none",
+          secure: true,
+          httpOnly: true,
+          path: "/",
+        },
       },
     },
   },

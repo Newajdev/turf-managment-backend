@@ -506,17 +506,15 @@ const googleLoginSuccess = async (session: Record<string, any>) => {
     });
   }
 
-  const accessToken = tokenUtils.getAccessToken({
+  const jwtPayload = {
     userId: session.user.id,
     role: session.user.role,
     name: session.user.name,
-  });
+  };
 
-  const refreshToken = tokenUtils.getRefreshToken({
-    userId: session.user.id,
-    role: session.user.role,
-    name: session.user.name,
-  });
+  const accessToken = tokenUtils.getAccessToken(jwtPayload);
+  const refreshToken = tokenUtils.getRefreshToken(jwtPayload);
+
 
   return {
     accessToken,

@@ -31,15 +31,16 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
 );
+// Middleware to parse JSON bodies
+app.use(express.json());
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", toNodeHandler(auth));
 
 app.post("/webhook", express.raw({ type: "application/json" }), PaymentController.handleStripeWebhookEvent);
 
-// Middleware to parse JSON bodies
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
+
 
 app.use("/api/v1", IndexRoutes);
 
