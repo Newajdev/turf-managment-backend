@@ -15,6 +15,12 @@ router.post(
 );
 
 router.get(
+  "/",
+  checkAuth(Role.SYSTEM_ADMIN),
+  BookingController.getAllBookings,
+);
+
+router.get(
   "/my-bookings",
   checkAuth(Role.PLAYER),
   BookingController.getMyBookings,

@@ -35,6 +35,12 @@ router.get(
 );
 
 router.get(
+  "/my-turf",
+  checkAuth(Role.TURF_OWNER),
+  TurfController.getMyTurf,
+);
+
+router.get(
   "/:id",
   // heckAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),
   TurfController.getSingleTurf,

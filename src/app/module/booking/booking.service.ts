@@ -629,6 +629,30 @@ const acceptBooking = async (userId: string, bookingId: string) => {
   return result;
 };
 
+const getAllBookings = async (query: IQueryParams) => {
+  const bookingQuery = new QueryBuilder(prisma.booking as any, query, {
+    searchableFields: ["turf.name", "player.name"],
+    filterableFields: ["status", "date"],
+  })
+    .search()
+    .filter()
+    .sort()
+    .paginate()
+    .include({
+      player: {
+        include: { user: true },
+      },
+      turf: true,
+      turfSlot: {
+        include: { slot: true },
+      },
+      customSlot: true,
+    });
+
+  const result = await bookingQuery.execute();
+  return result;
+};
+
 export const BookingService = {
   createBooking,
   makePaymentForCustomSlot,
@@ -638,4 +662,5 @@ export const BookingService = {
   cancelBooking,
   rejectBooking,
   acceptBooking,
+  getAllBookings,
 };

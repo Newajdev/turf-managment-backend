@@ -338,9 +338,10 @@ const changePassword = async (
   });
 
   return {
-    ...result,
+    user: session.user,
     accessToken,
     refreshToken,
+    token: sessionToken,
   };
 };
 
@@ -407,9 +408,10 @@ const verifyEmail = async (payload: IVerifyEmail) => {
   const refreshToken = tokenUtils.getRefreshToken(jwtPayload);
 
   return {
-    ...result,
+    user: result.user,
     accessToken,
     refreshToken,
+    token: result.session.token,
   };
 };
 

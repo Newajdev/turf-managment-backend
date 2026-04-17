@@ -12,127 +12,67 @@ export const checkAuth =
   (...authRoles: Role[]) =>
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const sessionToken = CookieUtils.getCookie(
-        req,
-        "better-auth.session_token",
-      );
+      let user: any = null;
 
-      if (!sessionToken) {
-        throw new AppError(
-          status.UNAUTHORIZED,
-          "Unauthorized access! No session token provided.",
-        );
-      }
+      const sessionToken = CookieUtils.getCookie(req, "better-auth.session_token");
+      const accessToken = CookieUtils.getCookie(req, "accessToken");
 
-      if (sessionToken) {
+      // 1. Try to verify via Session Token
+      if (sessionToken && sessionToken !== "undefined") {
         const sessionExists = await prisma.session.findFirst({
           where: {
             token: sessionToken,
-            expiresAt: {
-              gt: new Date(),
-            },
+            expiresAt: { gt: new Date() },
           },
-          include: {
-            user: true,
-          },
+          include: { user: true },
         });
 
         if (sessionExists && sessionExists.user) {
-          const user = sessionExists.user;
-
-          const now = new Date();
-          const expiresAt = new Date(sessionExists.expiresAt);
-          const createdAt = new Date(sessionExists.createdAt);
-
-          const sessionLifeTime = expiresAt.getTime() - createdAt.getTime();
-          const timeRemaining = expiresAt.getTime() - now.getTime();
-          const percentRemaining = (timeRemaining / sessionLifeTime) * 100;
-
-          if (percentRemaining < 20) {
-            res.setHeader("X-Session-Refresh", "true");
-            res.setHeader("X-Session-Expires-At", expiresAt.toISOString());
-            res.setHeader("X-Time-Remaining", timeRemaining.toString());
-          }
-
-          if (
-            user.userStatus === UserStatus.BLOCKED ||
-            user.userStatus === UserStatus.DELETED
-          ) {
-            throw new AppError(
-              status.UNAUTHORIZED,
-              "Unauthorized access! User is not active.",
-            );
-          }
-
-          if (user.isDeleted) {
-            throw new AppError(
-              status.UNAUTHORIZED,
-              "Unauthorized access! User is deleted.",
-            );
-          }
-
-          if (authRoles.length > 0 && !authRoles.includes(user.role)) {
-            throw new AppError(
-              status.FORBIDDEN,
-              "Forbidden access! You do not have permission to access this resource.",
-            );
-          }
-
-          if (user.needPasswordChange && req.originalUrl !== "/api/v1/auth/change-password") {
-            throw new AppError(status.FORBIDDEN, "Please change your password first.");
-          }
-
-          req.user = {
-            userId: user.id,
-            role: user.role,
-            email: user.email,
-          };
-        }
-
-        const accessToken = CookieUtils.getCookie(req, "accessToken");
-
-        if (!accessToken) {
-          throw new AppError(
-            status.UNAUTHORIZED,
-            "Unauthorized access! No access token provided.",
-          );
+          user = sessionExists.user;
         }
       }
 
-      const accessToken = CookieUtils.getCookie(req, "accessToken");
-
-      if (!accessToken) {
-        throw new AppError(
-          status.UNAUTHORIZED,
-          "Unauthorized access! No access token provided.",
+      // 2. Try to verify via JWT if Session failed
+      if (!user && accessToken && accessToken !== "undefined") {
+        const verifiedToken = jwtUtils.verifyToken(
+          accessToken,
+          envVars.ACCESS_TOKEN_SECRET,
         );
+
+        if (verifiedToken.success && verifiedToken.data) {
+          // Fetch user from DB to ensure they still exist and status is active
+          user = await prisma.user.findUnique({
+            where: { id: verifiedToken.data.userId },
+          });
+        }
       }
 
-      const verifiedToken = jwtUtils.verifyToken(
-        accessToken,
-        envVars.ACCESS_TOKEN_SECRET,
-      );
-
-      if (!verifiedToken.success) {
-        throw new AppError(
-          status.UNAUTHORIZED,
-          "Unauthorized access! Invalid access token.",
-        );
+      // 3. Final validation
+      if (!user) {
+        throw new AppError(status.UNAUTHORIZED, "Unauthorized access! Please log in.");
       }
 
-      if (
-        authRoles.length > 0 &&
-        !authRoles.includes(verifiedToken.data!.role as Role)
-      ) {
-        throw new AppError(
-          status.FORBIDDEN,
-          "Forbidden access! You do not have permission to access this resource.",
-        );
+      if (user.userStatus === UserStatus.BLOCKED || user.isDeleted) {
+        throw new AppError(status.UNAUTHORIZED, "Unauthorized access! User is not active.");
       }
 
-      if (verifiedToken.data!.needPasswordChange && req.originalUrl !== "/api/v1/auth/change-password") {
+      // Role Check
+      if (authRoles.length > 0 && !authRoles.includes(user.role)) {
+        throw new AppError(status.FORBIDDEN, "Forbidden access! You do not have permission.");
+      }
+
+      // Password Change enforcement
+      if (user.needPasswordChange && req.originalUrl !== "/api/v1/auth/change-password") {
         throw new AppError(status.FORBIDDEN, "Please change your password first.");
       }
+
+      // Populate req.user
+      (req.user as any) = {
+        userId: user.id,
+        role: user.role,
+        email: user.email,
+        needPasswordChange: user.needPasswordChange
+      };
 
       next();
     } catch (error: any) {

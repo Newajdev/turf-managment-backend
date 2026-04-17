@@ -272,8 +272,35 @@ const removeImageFromTurf = async (id: string, imageUrl: string) => {
   return result;
 };
 
+const getMyTurf = async (userId: string) => {
+  const turfOwner = await prisma.turfOwner.findUnique({
+    where: { userId },
+  });
+
+  if (!turfOwner) {
+    throw new AppError(status.NOT_FOUND, "Turf Owner profile not found!");
+  }
+
+  const result = await prisma.turf.findUnique({
+    where: { ownerId: turfOwner.id },
+    include: {
+      owner: true,
+      sportTypes: true,
+      turfSlots: {
+        include: {
+          slot: true,
+        },
+      },
+      reviews: true,
+    },
+  });
+
+  return result;
+};
+
 export const TurfService = {
   createTurf,
+  getMyTurf,
   getAllTurfs,
   getSingleTurf,
   updateTurf,

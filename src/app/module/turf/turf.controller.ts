@@ -8,13 +8,7 @@ import { deleteFileFromCloudinary } from "../../config/cloudinary.config";
 import AppError from "../../errorHelpers/AppError";
 
 const uploadImages = catchAsync(async (req: Request, res: Response) => {
-  const { userId } = req.user;
   const files = req.files as any[];
-
-
-  if (!userId) {
-    throw new AppError(status.BAD_REQUEST, "Turf ID is required");
-  }
 
   if (!files || files.length === 0) {
     return sendResponse(res, {
@@ -27,14 +21,11 @@ const uploadImages = catchAsync(async (req: Request, res: Response) => {
 
   const imageUrls = files.map((file) => file.path);
 
-
-  const result = await TurfService.addImagesToTurf(userId, imageUrls);
-
   sendResponse(res, {
     httpStatusCode: status.OK,
     success: true,
-    message: "Images uploaded and saved successfully",
-    data: result,
+    message: "Images uploaded successfully",
+    data: imageUrls,
   });
 });
 
@@ -123,10 +114,23 @@ const deleteTurf = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMyTurf = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user;
+  const result = await TurfService.getMyTurf(userId);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Turf retrieved successfully",
+    data: result,
+  });
+});
+
 export const TurfController = {
   uploadImages,
   deleteImage,
   createTurf,
+  getMyTurf,
   getAllTurfs,
   getSingleTurf,
   updateTurf,
