@@ -411,7 +411,7 @@ const verifyEmail = async (payload: IVerifyEmail) => {
     user: result.user,
     accessToken,
     refreshToken,
-    token: result.session.token,
+    token: result.token,
   };
 };
 
