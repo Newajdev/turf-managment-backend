@@ -164,10 +164,10 @@ const blockUser = async (userId: string, data: { status: UserStatus }) => {
       userId: userId,
       type: NotificationType.SYSTEM
     });
-  } else if (data.status === UserStatus.INACTIVE) {
+  } else if (data.status === UserStatus.DELETED) {
     await NotificationService.createNotification({
-      title: "Account Deactivated",
-      message: "Your account has been deactivated.",
+      title: "Account Deleted",
+      message: "Your account has been deleted.",
       userId: userId,
       type: NotificationType.SYSTEM
     });
@@ -177,7 +177,7 @@ const blockUser = async (userId: string, data: { status: UserStatus }) => {
 };
 
 const getAllUsers = async (query: IQueryParams) => {
-  const userQuery = new QueryBuilder(prisma.user as any, query, {
+  const userQuery = new QueryBuilder(prisma.user, query, {
       searchableFields: ["name", "email"],
       filterableFields: ["role", "userStatus"],
   })
@@ -190,10 +190,51 @@ const getAllUsers = async (query: IQueryParams) => {
   return result;
 };
 
+const updateProfilePhoto = async (userId: string, role: Role, photoUrl: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId, isDeleted: false },
+  });
+
+  if (!user) {
+    throw new AppError(status.NOT_FOUND, "User not found!");
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Update User table
+    await tx.user.update({
+      where: { id: userId },
+      data: { image: photoUrl },
+    });
+
+    // 2. Update Role-specific table
+    if (role === Role.PLAYER) {
+      await tx.player.update({
+        where: { userId },
+        data: { profilePhoto: photoUrl },
+      });
+    } else if (role === Role.TURF_OWNER) {
+      await tx.turfOwner.update({
+        where: { userId },
+        data: { profilePhoto: photoUrl },
+      });
+    } else if (role === Role.SYSTEM_ADMIN) {
+      await tx.systemAdmin.update({
+        where: { userId },
+        data: { profilePhoto: photoUrl },
+      });
+    }
+
+    return photoUrl;
+  });
+
+  return result;
+};
+
 export const UserService = {
   getMyProfile,
   updateMyProfile,
   deleteMyProfile,
   blockUser,
   getAllUsers,
+  updateProfilePhoto,
 };

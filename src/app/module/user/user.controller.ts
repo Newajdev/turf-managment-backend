@@ -52,6 +52,32 @@ const blockUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const uploadImage = catchAsync(async (req: Request, res: Response) => {
+  const { userId, role } = req.user;
+  const file = req.file;
+
+  if (!file) {
+    return sendResponse(res, {
+      httpStatusCode: status.BAD_REQUEST,
+      success: false,
+      message: "No image provided",
+      data: null,
+    });
+  }
+
+  const profilePhoto = file.path;
+
+  // Delegate database update to Service layer
+  await UserService.updateProfilePhoto(userId, role, profilePhoto);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Profile photo updated successfully",
+    data: profilePhoto,
+  });
+});
+
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   const result = await UserService.getAllUsers(req.query);
 
@@ -70,4 +96,5 @@ export const UserController = {
   deleteMyProfile,
   blockUser,
   getAllUsers,
+  uploadImage,
 };

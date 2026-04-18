@@ -4,6 +4,7 @@ import { validateRequest } from "../../middleware/validateRequest";
 import { UserValidations } from "./user.validation";
 import { checkAuth } from "../../middleware/AuthUser";
 import { Role } from "../../../generated/prisma/enums";
+import { multerUpload } from "../../config/multer.config";
 
 const router = express.Router();
 
@@ -11,6 +12,13 @@ router.get(
   "/me",
   checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),
   UserController.getMyProfile,
+);
+
+router.post(
+  "/upload-image",
+  checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),
+  multerUpload.single("images"),
+  UserController.uploadImage,
 );
 
 router.get(
