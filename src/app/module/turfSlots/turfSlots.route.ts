@@ -32,6 +32,7 @@ router.post(
 
 // Retrieval
 router.get("/:turfId", TurfSlotsController.getRegularSlotsByTurf); // Public
+router.get("/:turfId/availability", TurfSlotsController.getAvailableSlots); // Public
 
 router.get("/custom/:turfId", checkAuth(Role.PLAYER), TurfSlotsController.getCustomSlotsByPlayer); // Protected
 

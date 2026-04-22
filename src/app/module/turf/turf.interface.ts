@@ -11,20 +11,28 @@ export interface ITurfSlotPayload {
   price: number;
 }
 
-export interface ITurf {
+export interface ITurfCreatePayload {
   name: string;
   address: string;
   description?: string;
-  images: string[];
-  contactNumber: string[];
+  images?: string[];
+  contactNumber?: string[];
   emailAddress?: string | null;
   openingTime: string;
   closingTime: string;
-  weeklyOffDays: WeeklyOffDay[];
+  weeklyOffDays?: WeeklyOffDay[];
   isAlwaysOpen?: boolean;
   hourlyRate: number;
   isVerifiedEmail?: boolean;
   turfStatus?: TurfStatus;
-  maintenanceDetails?: ITurfMaintenancePayload;
   sportsTypes?: string[];
+}
+
+export interface ITurfUpdatePayload extends Partial<ITurfCreatePayload> {
+  maintenanceDetails?: ITurfMaintenancePayload;
+}
+
+// Keep ITurf for backward compatibility or as a general type if needed
+export interface ITurf extends ITurfCreatePayload {
+    maintenanceDetails?: ITurfMaintenancePayload;
 }

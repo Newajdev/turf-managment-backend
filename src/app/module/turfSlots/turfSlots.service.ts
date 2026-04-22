@@ -55,10 +55,15 @@ const createCustomTurfSlot = async (
 
   const result = await prisma.customTurfSlot.create({
     data: {
-      ...payload,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      date: new Date(payload.date),
+      sportType: payload.sportType,
+      playersCount: payload.playersCount,
       duration,
       price,
       playerId: player.id,
+      turfId: payload.turfId,
     },
   });
 
@@ -236,6 +241,9 @@ const bulkCreateTurfSlots = async (userId: string, payload: { turfId: string, sl
             slotId: slotId,
             price: payload.price,
           },
+          include: {
+            slot: true
+          }
         })
       )
     );
@@ -245,10 +253,50 @@ const bulkCreateTurfSlots = async (userId: string, payload: { turfId: string, sl
   return result;
 };
 
+const getAvailableSlots = async (turfId: string, date: string) => {
+  const regularSlots = await prisma.turfSlot.findMany({
+    where: { 
+      turfId,
+      isBooking: false // Assuming false means 'active' and available for player view
+    },
+    include: { slot: true },
+  });
+
+  const confirmedBookings = await prisma.booking.findMany({
+    where: {
+      turfId,
+      date: new Date(date),
+      status: {
+        in: [BookingStatus.CONFIRMED, BookingStatus.PENDING] // Also count pending as 'unavailable' for standard flow to prevent race conditions
+      },
+      isDeleted: false,
+    },
+    include: {
+      turfSlot: true,
+      customSlot: true,
+    }
+  });
+
+  return regularSlots.map(ts => {
+    const isBooked = confirmedBookings.some(cb => {
+      if (cb.turfSlotId === ts.id) return true;
+      if (cb.customSlot) {
+        return isTimeOverlap(
+          { startTime: ts.slot.startTime, endTime: ts.slot.endTime },
+          { startTime: cb.customSlot.startTime, endTime: cb.customSlot.endTime }
+        );
+      }
+      return false;
+    });
+    return { ...ts, isBooked };
+  });
+};
+
 export const TurfSlotsService = {
   createTurfSlot,
   createCustomTurfSlot,
   getRegularSlotsByTurf,
+  getAvailableSlots,
   getCustomSlotsByPlayer,
   deleteTurfSlot,
   bulkCreateTurfSlots,

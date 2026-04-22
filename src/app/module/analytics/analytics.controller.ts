@@ -27,7 +27,20 @@ const getOwnerAnalytics = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPlayerAnalytics = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user;
+  const result = await AnalyticsService.getPlayerAnalytics(userId);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Player analytics retrieved successfully",
+    data: result,
+  });
+});
+
 export const AnalyticsController = {
   getAdminAnalytics,
   getOwnerAnalytics,
+  getPlayerAnalytics,
 };

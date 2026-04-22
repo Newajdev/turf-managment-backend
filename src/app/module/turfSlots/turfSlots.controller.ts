@@ -106,10 +106,24 @@ const deleteCustomTurfSlot = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAvailableSlots = catchAsync(async (req: Request, res: Response) => {
+  const { turfId } = req.params;
+  const { date } = req.query;
+  const result = await TurfSlotsService.getAvailableSlots(turfId as string, date as string);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Available slots retrieved successfully",
+    data: result,
+  });
+});
+
 export const TurfSlotsController = {
   createTurfSlot,
   createCustomTurfSlot,
   getRegularSlotsByTurf,
+  getAvailableSlots,
   getCustomSlotsByPlayer,
   deleteTurfSlot,
   bulkCreateTurfSlots,

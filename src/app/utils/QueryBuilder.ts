@@ -71,10 +71,8 @@ export class QueryBuilder<T, TWhereInput = Record<string, unknown>, TInclude = R
 
             return {
               [relation]: {
-                some: {
-                  [nestedRelation]: {
-                    [nestedField]: stringFilter,
-                  },
+                [nestedRelation]: {
+                  [nestedField]: stringFilter,
                 },
               },
             };
@@ -151,40 +149,25 @@ export class QueryBuilder<T, TWhereInput = Record<string, unknown>, TInclude = R
           const [relation, nestedRelation, nestedField] = parts;
 
           if (!queryWhere[relation]) {
-            queryWhere[relation] = {
-              some: {},
-            };
-            countQueryWhere[relation] = {
-              some: {},
-            };
+            queryWhere[relation] = {};
+            countQueryWhere[relation] = {};
           }
 
-          const queryRelation = queryWhere[relation] as Record<string, unknown>;
-          const countRelation = countQueryWhere[relation] as Record<string, unknown>;
+          const queryRelation = queryWhere[relation] as Record<string, any>;
+          const countRelation = countQueryWhere[relation] as Record<string, any>;
 
-          if (!queryRelation.some) {
-            queryRelation.some = {};
+          if (!queryRelation[nestedRelation]) {
+            queryRelation[nestedRelation] = {};
           }
-          if (!countRelation.some) {
-            countRelation.some = {};
-          }
-
-          const querySome = queryRelation.some as Record<string, unknown>;
-          const countSome = countRelation.some as Record<string, unknown>;
-
-          if (!querySome[nestedRelation]) {
-            querySome[nestedRelation] = {};
+          if (!countRelation[nestedRelation]) {
+            countRelation[nestedRelation] = {};
           }
 
-          if (!countSome[nestedRelation]) {
-            countSome[nestedRelation] = {};
-          }
+          const queryOp = queryRelation[nestedRelation] as Record<string, any>;
+          const countOp = countRelation[nestedRelation] as Record<string, any>;
 
-          const queryNestedRelation = querySome[nestedRelation] as Record<string, unknown>;
-          const countNestedRelation = countSome[nestedRelation] as Record<string, unknown>;
-
-          queryNestedRelation[nestedField] = this.parseFilterValue(value);
-          countNestedRelation[nestedField] = this.parseFilterValue(value);
+          queryOp[nestedField] = this.parseFilterValue(value);
+          countOp[nestedField] = this.parseFilterValue(value);
 
           return;
         }

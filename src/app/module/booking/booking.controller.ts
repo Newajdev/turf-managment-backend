@@ -82,6 +82,31 @@ const acceptBooking = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const createBookingForCustomSlot = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user;
+  const result = await BookingService.createBookingForCustomSlot(userId, req.body);
+
+  sendResponse(res, {
+    httpStatusCode: status.CREATED,
+    success: true,
+    message: "Requested custom booking successfully",
+    data: result,
+  });
+});
+
+const makePaymentForCustomSlot = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user;
+  const { id } = req.params;
+  const result = await BookingService.makePaymentForCustomSlot(userId, id as string);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Payment initiated successfully",
+    data: result,
+  });
+});
+
 const getAllBookings = catchAsync(async (req: Request, res: Response) => {
   const result = await BookingService.getAllBookings(req.query);
 
@@ -98,6 +123,8 @@ export const BookingController = {
   createBooking,
   getMyBookings,
   getTurfBookings,
+  createBookingForCustomSlot,
+  makePaymentForCustomSlot,
   cancelBooking,
   rejectBooking,
   acceptBooking,

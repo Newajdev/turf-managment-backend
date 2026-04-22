@@ -10,6 +10,9 @@ export interface ITurfSlot {
 export interface ICustomTurfSlot {
   startTime: string;
   endTime: string;
+  date: string | Date;
+  sportType: string;
+  playersCount: number;
   duration?: number;
   price?: number;
   isBooked?: boolean;

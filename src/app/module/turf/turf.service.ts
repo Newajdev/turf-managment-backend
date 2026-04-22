@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
 import { status } from "http-status";
-import { ITurf } from "./turf.interface";
+import { ITurfCreatePayload, ITurfUpdatePayload } from "./turf.interface";
 import { TurfStatus, BookingStatus } from "../../../generated/prisma/enums";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IQueryParams } from "../../interfaces/query.interface";
@@ -9,7 +9,7 @@ import { NotificationService } from "../notification/notification.service";
 import { NotificationType } from "../../../generated/prisma/enums";
 import { sendEmail } from "../../utils/email";
 
-const createTurf = async (userId: string, payload: ITurf) => {
+const createTurf = async (userId: string, payload: ITurfCreatePayload) => {
   const turfOwner = await prisma.turfOwner.findUnique({
     where: { userId },
   });
@@ -50,8 +50,8 @@ const createTurf = async (userId: string, payload: ITurf) => {
 
 const getAllTurfs = async (query: IQueryParams) => {
   const turfQuery = new QueryBuilder(prisma.turf as any, query, {
-    searchableFields: ["name", "address"],
-    filterableFields: ["turfStatus", "hourlyRate"],
+    searchableFields: ["name", "address", "sportTypes.some.name"],
+    filterableFields: ["turfStatus", "hourlyRate", "sportTypes.id", "sportTypes.some.name"],
   })
     .search()
     .filter()
@@ -86,7 +86,7 @@ const getSingleTurf = async (id: string) => {
 const updateTurf = async (
   userId: string,
   id: string,
-  payload: Partial<ITurf>,
+  payload: ITurfUpdatePayload,
 ) => {
   const { maintenanceDetails, sportsTypes, ...rest } = payload;
 

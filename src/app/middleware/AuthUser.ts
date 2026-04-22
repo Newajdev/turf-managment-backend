@@ -15,7 +15,13 @@ export const checkAuth =
       let user: any = null;
 
       const sessionToken = CookieUtils.getCookie(req, "better-auth.session_token");
-      const accessToken = CookieUtils.getCookie(req, "accessToken");
+      let accessToken = CookieUtils.getCookie(req, "accessToken");
+
+      // Fallback to Authorization header if cookie is missing
+      const authHeader = req.headers.authorization;
+      if (!accessToken && authHeader && authHeader.startsWith("Bearer ")) {
+        accessToken = authHeader.split(" ")[1];
+      }
 
       // 1. Try to verify via Session Token
       if (sessionToken && sessionToken !== "undefined") {

@@ -17,4 +17,10 @@ router.get(
   AnalyticsController.getOwnerAnalytics,
 );
 
+router.get(
+  "/player",
+  checkAuth(Role.PLAYER),
+  AnalyticsController.getPlayerAnalytics,
+);
+
 export const AnalyticsRoutes = router;

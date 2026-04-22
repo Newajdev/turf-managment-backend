@@ -2,6 +2,9 @@ model CustomTurfSlot {
   id        String  @id @default(uuid(7))
   startTime String
   endTime   String
+  date      DateTime @db.Date
+  sportType String
+  playersCount Int
   duration  Int
   price     Float
   isBooked  Boolean @default(false)

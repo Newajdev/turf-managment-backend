@@ -50,4 +50,17 @@ router.patch(
   BookingController.acceptBooking,
 );
 
+router.post(
+  "/custom",
+  checkAuth(Role.PLAYER),
+  validateRequest(BookingValidations.createBookingSchema),
+  BookingController.createBookingForCustomSlot,
+);
+
+router.post(
+  "/payment/:id",
+  checkAuth(Role.PLAYER),
+  BookingController.makePaymentForCustomSlot,
+);
+
 export const BookingRoutes = router;

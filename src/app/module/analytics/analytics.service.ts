@@ -1,7 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
 import { status } from "http-status";
-import { PaymentStatus } from "../../../generated/prisma/enums";
+import { PaymentStatus, BookingStatus } from "../../../generated/prisma/enums";
 
 const getAdminAnalytics = async () => {
     const [totalRevenue, totalPlayers, totalTurfOwners, totalTurfs, bookingsByStatus] = await Promise.all([
@@ -76,7 +76,54 @@ const getOwnerAnalytics = async (userId: string) => {
     };
 };
 
+const getPlayerAnalytics = async (userId: string) => {
+    const player = await prisma.player.findUnique({
+        where: { userId }
+    });
+
+    if (!player) {
+        throw new AppError(status.FORBIDDEN, "Only players can access player analytics!");
+    }
+
+    const [totalBookings, upcomingBookings, totalSpent, recentBookings] = await Promise.all([
+        prisma.booking.count({
+            where: { playerId: player.id }
+        }),
+        prisma.booking.count({
+            where: { 
+                playerId: player.id,
+                date: { gte: new Date() },
+                status: BookingStatus.CONFIRMED
+            }
+        }),
+        prisma.payment.aggregate({
+            _sum: { amount: true },
+            where: {
+                booking: { playerId: player.id },
+                status: PaymentStatus.PAID
+            }
+        }),
+        prisma.booking.findMany({
+            where: { playerId: player.id },
+            orderBy: { createdAt: 'desc' },
+            take: 5,
+            include: {
+                turf: true,
+                turfSlot: { include: { slot: true } }
+            }
+        })
+    ]);
+
+    return {
+        totalBookings,
+        upcomingBookings,
+        totalSpent: totalSpent?._sum?.amount || 0,
+        recentBookings
+    };
+};
+
 export const AnalyticsService = {
     getAdminAnalytics,
-    getOwnerAnalytics
+    getOwnerAnalytics,
+    getPlayerAnalytics
 };

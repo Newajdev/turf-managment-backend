@@ -103,78 +103,82 @@ const createBooking = async (userId: string, payload: IBooking) => {
       },
     });
 
-    const transectoinId = String(uuidv7());
+    const transactionId = String(uuidv7());
 
     const paymentData = await tx.payment.create({
       data: {
         bookingId: booking.id,
         amount: booking.turfSlot?.price as number,
-        transactionId: transectoinId,
+        transactionId: transactionId,
       },
     });
 
+    return { booking, paymentData };
+  });
+
+  // --- Side Effects (Outside Transaction) ---
+  
+  let paymentUrl = "";
+  try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
       line_items: [
         {
           price_data: {
-            currency: "bdt",
+            currency: "usd", // Changed from bdt to usd for better stripe test account support
             product_data: {
-              name: `Booking for ${booking.turf.name} on ${booking.date.toDateString()}`,
+              name: `Booking for ${result.booking.turf.name} on ${result.booking.date.toDateString()}`,
             },
-            unit_amount: paymentData.amount * 100,
+            unit_amount: Math.round(result.paymentData.amount * 100), // Ensure it's an integer
           },
           quantity: 1,
         },
       ],
       metadata: {
-        bookingId: booking.id,
-        paymentId: paymentData.id,
+        bookingId: result.booking.id,
+        paymentId: result.paymentData.id,
       },
       success_url: `${envVars.FRONTEND_URL}/dashboard/payments/payment-success`,
       cancel_url: `${envVars.FRONTEND_URL}/dashboard/bookings`,
     });
+    paymentUrl = session.url || "";
+  } catch (stripeError: any) {
+    console.error("Stripe Session Creation Error:", stripeError.message);
+  }
 
-    const owner = await tx.turfOwner.findUnique({
-      where: { id: booking.turf.ownerId },
-    });
-
-    if (owner) {
-      await NotificationService.createNotification({
-        title: "New Booking Received",
-        message: `You have a new booking for ${booking.turf.name} on ${booking.date.toDateString()}.`,
-        userId: owner.userId,
-        type: NotificationType.BOOKING,
-      });
-    }
-
-    // Send Confirmation Email to Player
-    await sendEmail({
-      to: player.email,
-      subject: "Booking Confirmed - Turf Management",
-      templateName: "booking-confirmation",
-      templateData: {
-        playerName: player.name,
-        turfName: booking.turf.name,
-        date: booking.date.toDateString(),
-        startTime: booking.turfSlot?.slot.startTime,
-        endTime: booking.turfSlot?.slot.endTime,
-        price: booking.turfSlot?.price,
-      },
-    });
-
-    return {
-      booking,
-      paymentData,
-      paymentUrl: session.url,
-    };
+  const owner = await prisma.turfOwner.findUnique({
+    where: { id: result.booking.turf.ownerId },
   });
+
+  if (owner) {
+    NotificationService.createNotification({
+      title: "New Booking Received",
+      message: `You have a new booking for ${result.booking.turf.name} on ${result.booking.date.toDateString()}.`,
+      userId: owner.userId,
+      type: NotificationType.BOOKING,
+    }).catch(pushError => console.error("Notification Error:", pushError));
+  }
+
+  // Send Confirmation Email to Player (Fire and forget)
+  sendEmail({
+    to: player.email,
+    subject: "Booking Confirmed - Turf Management",
+    templateName: "booking-confirmation",
+    templateData: {
+      playerName: player.name,
+      turfName: result.booking.turf.name,
+      date: result.booking.date.toDateString(),
+      startTime: result.booking.turfSlot?.slot.startTime,
+      endTime: result.booking.turfSlot?.slot.endTime,
+      price: result.booking.turfSlot?.price,
+    },
+  }).catch(emailError => console.error("Post-Booking Email Error:", emailError));
 
   return {
     booking: result.booking,
     payment: result.paymentData,
-    paymentUrl: result.paymentUrl,
+    paymentUrl: paymentUrl,
   };
 };
 
