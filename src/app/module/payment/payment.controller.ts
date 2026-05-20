@@ -4,7 +4,7 @@ import e, { Request, Response } from "express";
 import { catchAsync } from "../../shared/catchAsync";
 import { envVars } from "../../config/env";
 import status from "http-status";
-import { Stripe } from "stripe";
+import  Stripe  from "stripe";
 import { paymentService } from "./payment.service";
 import { sendResponse } from "../../shared/sendResponse";
 import { se } from "date-fns/locale";

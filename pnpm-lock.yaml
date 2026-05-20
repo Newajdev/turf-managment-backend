@@ -63,8 +63,8 @@ importers:
         specifier: ^8.20.0
         version: 8.20.0
       stripe:
-        specifier: ^22.0.1
-        version: 22.0.1(@types/node@25.5.0)
+        specifier: ^17.7.0
+        version: 17.7.0
       tsup:
         specifier: ^8.5.1
         version: 8.5.1(jiti@2.6.1)(tsx@4.21.0)(typescript@6.0.2)
@@ -3099,14 +3099,9 @@ packages:
     resolution: {integrity: sha512-BrpvfNAE3dcvq7ll3xVumzjKjZQ5tI1sEUIKr3Uoks0XUl45St3FlatVqef9prk4jRDzhW6WZg+3bk93y6pLjA==}
     engines: {node: '>=6'}
 
-  stripe@22.0.1:
-    resolution: {integrity: sha512-Yw764pZ6s8Xu4CtUZdD5uWOkw6gc9xzO9OKylCuj1gMhMDLbyGbDtaPNNSFE4mB6njYSHESYIVbF1iIzUfAl2g==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      '@types/node': '>=18'
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
+  stripe@17.7.0:
+    resolution: {integrity: sha512-aT2BU9KkizY9SATf14WhhYVv2uOapBWX0OFWF4xvcj1mPaNotlSc2CsxpS4DS46ZueSppmCF5BX1sNYBtwBvfw==}
+    engines: {node: '>=12.*'}
 
   sucrase@3.35.1:
     resolution: {integrity: sha512-DhuTmvZWux4H1UOnWMB3sk0sbaCVOoQZjv8u1rDoTV0HTdGem9hkAZtl4JZy8P2z4Bg0nT+YMeOFyVr4zcG5Tw==}
@@ -6294,9 +6289,10 @@ snapshots:
 
   strip-final-newline@2.0.0: {}
 
-  stripe@22.0.1(@types/node@25.5.0):
-    optionalDependencies:
+  stripe@17.7.0:
+    dependencies:
       '@types/node': 25.5.0
+      qs: 6.15.0
 
   sucrase@3.35.1:
     dependencies:

@@ -17,7 +17,6 @@ const bootstrap = async () => {
   }
 };
 
-
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received. Shutting down server...");
 
@@ -30,7 +29,6 @@ process.on("SIGTERM", () => {
 
   process.exit(1);
 });
-
 
 process.on("SIGINT", () => {
   console.log("SIGINT signal received. Shutting down server...");
@@ -68,6 +66,5 @@ process.on("unhandledRejection", (error) => {
 
   process.exit(1);
 });
-
 
 bootstrap();

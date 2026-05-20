@@ -10,3 +10,4 @@ artifacts
 
 /generated/prisma
 .vercel
+.env*.local

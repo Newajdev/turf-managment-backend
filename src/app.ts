@@ -11,8 +11,11 @@ import rateLimit from "express-rate-limit";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./app/lib/auth";
 import { PaymentController } from "./app/module/payment/payment.controller";
+import { seedSystemAdmin } from "./app/seed/systemAdmin.seed";
 
-
+void seedSystemAdmin().catch((err) =>
+  console.error("Failed to seed system admin:", err),
+);
 
 const app: Application = express();
 
@@ -41,7 +44,10 @@ const authRateLimiter = rateLimit({
   max: 30,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, message: "Too many requests. Please try again later." },
+  message: {
+    success: false,
+    message: "Too many requests. Please try again later.",
+  },
 });
 
 app.use("/api/v1/auth/login", authRateLimiter);
@@ -55,9 +61,11 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", toNodeHandler(auth));
 
-app.post("/webhook", express.raw({ type: "application/json" }), PaymentController.handleStripeWebhookEvent);
-
-
+app.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  PaymentController.handleStripeWebhookEvent,
+);
 
 app.use("/api/v1", IndexRoutes);
 
@@ -70,7 +78,7 @@ app.get("/", async (req: Request, res: Response) => {
   });
 });
 
-app.use(globalErrorHandler)
-app.use(notFound)
+app.use(globalErrorHandler);
+app.use(notFound);
 
 export default app;
