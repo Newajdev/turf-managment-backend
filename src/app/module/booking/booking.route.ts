@@ -63,4 +63,16 @@ router.post(
   BookingController.makePaymentForCustomSlot,
 );
 
+router.patch(
+  "/complete/:id",
+  checkAuth(Role.TURF_OWNER),
+  BookingController.completeBooking,
+);
+
+router.get(
+  "/:id",
+  checkAuth(Role.PLAYER),
+  BookingController.getBookingById,
+);
+
 export const BookingRoutes = router;

@@ -284,7 +284,7 @@ const changePassword = async (
 
   const { currentPassword, newPassword } = payload;
 
-  const result = await auth.api.changePassword({
+  await auth.api.changePassword({
     body: {
       currentPassword,
       newPassword,
@@ -314,7 +314,7 @@ const changePassword = async (
     status: session.user.userStatus,
     isDeleted: session.user.isDeleted,
     emailVerified: session.user.emailVerified,
-    needPasswordChange: false, // Since it was just changed
+    needPasswordChange: false,
   });
 
   const refreshToken = tokenUtils.getRefreshToken({

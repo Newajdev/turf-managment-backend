@@ -115,6 +115,8 @@ const deleteMyProfile = async (userId: string, role: Role) => {
     });
 
 
+    await tx.session.deleteMany({ where: { userId } });
+
     if (role === Role.PLAYER) {
       await tx.player.update({
         where: { userId },

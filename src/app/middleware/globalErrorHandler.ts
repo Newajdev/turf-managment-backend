@@ -52,6 +52,15 @@ export const globalErrorHandler = async (
         message: err.message,
       },
     ];
+  } else if (err?.code === "P2002") {
+    statusCode = status.CONFLICT;
+    message = "A record with this value already exists.";
+  } else if (err?.code === "P2025") {
+    statusCode = status.NOT_FOUND;
+    message = "Record not found.";
+  } else if (err?.type?.startsWith?.("Stripe")) {
+    statusCode = status.BAD_GATEWAY;
+    message = "Payment provider error. Please try again.";
   } else if (err instanceof Error) {
     statusCode = status.INTERNAL_SERVER_ERROR;
     message = err.message;

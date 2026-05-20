@@ -83,7 +83,7 @@ const bulkCreateTurfSlots = catchAsync(async (req: Request, res: Response) => {
 const updateCustomTurfSlot = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.user;
   const { id } = req.params;
-  const result = await TurfSlotsService.updateCustomTurfSlot(userId, id, req.body);
+  const result = await TurfSlotsService.updateCustomTurfSlot(userId, id as string, req.body);
 
   sendResponse(res, {
     httpStatusCode: status.OK,
@@ -96,7 +96,7 @@ const updateCustomTurfSlot = catchAsync(async (req: Request, res: Response) => {
 const deleteCustomTurfSlot = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.user;
   const { id } = req.params;
-  const result = await TurfSlotsService.deleteCustomTurfSlot(userId, id);
+  const result = await TurfSlotsService.deleteCustomTurfSlot(userId, id as string);
 
   sendResponse(res, {
     httpStatusCode: status.OK,

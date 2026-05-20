@@ -25,8 +25,15 @@ router.post(
   AuthController.login,
 );
 router.post("/refresh-token", checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN), AuthController.refreshToken);
+
 router.post("/logout", checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN), AuthController.logout);
-router.post("/change-password", checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN), AuthController.changePassword);
+
+router.post(
+  "/change-password",
+  validateRequest(AuthValidations.changePasswordSchema),
+  checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),
+  AuthController.changePassword,
+);
 
 router.post(
   "/forgot-password",

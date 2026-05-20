@@ -5,14 +5,22 @@ import { status } from "http-status";
 import { IBooking } from "./booking.interface";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IQueryParams } from "../../interfaces/query.interface";
-import { BookingStatus } from "../../../generated/prisma/enums";
+import {
+  BookingStatus,
+  CustomSlotStatus,
+  NotificationType,
+  PaymentStatus,
+} from "../../../generated/prisma/enums";
 import { v7 as uuidv7 } from "uuid";
-import { stripe } from "../../config/stripe.config";
-import { envVars } from "../../config/env";
 import { NotificationService } from "../notification/notification.service";
-import { NotificationType, CustomSlotStatus } from "../../../generated/prisma/enums";
 import { isTimeOverlap } from "../../utils/calculateTime";
 import { sendEmail } from "../../utils/email";
+import { createStripeCheckoutSession } from "../../utils/stripeCheckout.util";
+
+const BLOCKING_BOOKING_STATUSES = [
+  BookingStatus.PENDING,
+  BookingStatus.CONFIRMED,
+] as const;
 
 const createBooking = async (userId: string, payload: IBooking) => {
   const player = await prisma.player.findUnique({
@@ -56,7 +64,7 @@ const createBooking = async (userId: string, payload: IBooking) => {
       where: {
         date: bookingDate,
         turfId: payload.turfId,
-        status: BookingStatus.CONFIRMED,
+        status: { in: [...BLOCKING_BOOKING_STATUSES] },
         isDeleted: false,
       },
       include: {
@@ -82,7 +90,7 @@ const createBooking = async (userId: string, payload: IBooking) => {
       if (existingRange && isTimeOverlap(requestedRange, existingRange)) {
         throw new AppError(
           status.CONFLICT,
-          "This time frame overlaps with an existing confirmed booking!",
+          "This time frame overlaps with an existing booking!",
         );
       }
     }
@@ -93,7 +101,7 @@ const createBooking = async (userId: string, payload: IBooking) => {
         ...payload,
         date: bookingDate,
         playerId: player.id,
-        status: BookingStatus.CONFIRMED,
+        status: BookingStatus.PENDING,
       },
       include: {
         turf: true,
@@ -116,35 +124,23 @@ const createBooking = async (userId: string, payload: IBooking) => {
     return { booking, paymentData };
   });
 
-  // --- Side Effects (Outside Transaction) ---
-  
-  let paymentUrl = "";
+  let paymentUrl: string;
   try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "usd", // Changed from bdt to usd for better stripe test account support
-            product_data: {
-              name: `Booking for ${result.booking.turf.name} on ${result.booking.date.toDateString()}`,
-            },
-            unit_amount: Math.round(result.paymentData.amount * 100), // Ensure it's an integer
-          },
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        bookingId: result.booking.id,
-        paymentId: result.paymentData.id,
-      },
-      success_url: `${envVars.FRONTEND_URL}/dashboard/payments/payment-success`,
-      cancel_url: `${envVars.FRONTEND_URL}/dashboard/bookings`,
+    paymentUrl = await createStripeCheckoutSession({
+      productName: `Booking for ${result.booking.turf.name} on ${result.booking.date.toDateString()}`,
+      amount: result.paymentData.amount,
+      bookingId: result.booking.id,
+      paymentId: result.paymentData.id,
     });
-    paymentUrl = session.url || "";
-  } catch (stripeError: any) {
-    console.error("Stripe Session Creation Error:", stripeError.message);
+  } catch {
+    await prisma.$transaction(async (tx) => {
+      await tx.payment.delete({ where: { id: result.paymentData.id } });
+      await tx.booking.delete({ where: { id: result.booking.id } });
+    });
+    throw new AppError(
+      status.BAD_GATEWAY,
+      "Payment session could not be created. Please try again.",
+    );
   }
 
   const owner = await prisma.turfOwner.findUnique({
@@ -153,27 +149,12 @@ const createBooking = async (userId: string, payload: IBooking) => {
 
   if (owner) {
     NotificationService.createNotification({
-      title: "New Booking Received",
-      message: `You have a new booking for ${result.booking.turf.name} on ${result.booking.date.toDateString()}.`,
+      title: "New Booking Request",
+      message: `A player requested a booking for ${result.booking.turf.name} on ${result.booking.date.toDateString()} (awaiting payment).`,
       userId: owner.userId,
       type: NotificationType.BOOKING,
-    }).catch(pushError => console.error("Notification Error:", pushError));
+    }).catch((pushError) => console.error("Notification Error:", pushError));
   }
-
-  // Send Confirmation Email to Player (Fire and forget)
-  sendEmail({
-    to: player.email,
-    subject: "Booking Confirmed - Turf Management",
-    templateName: "booking-confirmation",
-    templateData: {
-      playerName: player.name,
-      turfName: result.booking.turf.name,
-      date: result.booking.date.toDateString(),
-      startTime: result.booking.turfSlot?.slot.startTime,
-      endTime: result.booking.turfSlot?.slot.endTime,
-      price: result.booking.turfSlot?.price,
-    },
-  }).catch(emailError => console.error("Post-Booking Email Error:", emailError));
 
   return {
     booking: result.booking,
@@ -278,65 +259,66 @@ const makePaymentForCustomSlot = async (userId: string, bookingId: string) => {
       "This booking does not have a custom slot!",
     );
   }
+
+  if (booking.customSlot.status !== CustomSlotStatus.ACCEPTED) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "Custom slot must be accepted by the owner before payment!",
+    );
+  }
+
+  if (booking.status !== BookingStatus.PENDING) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "This booking is not awaiting payment!",
+    );
+  }
+
+  if (booking.paymentStatus === PaymentStatus.PAID) {
+    throw new AppError(status.BAD_REQUEST, "This booking is already paid!");
+  }
+
   const bookingPrice = booking.customSlot.price as number;
 
-  const result = await prisma.$transaction(async (tx) => {
-    const booking = await tx.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: BookingStatus.CONFIRMED,
-      },
-      include: {
-        turf: true,
-        customSlot: true,
-      },
-    });
+  const existingPayment = await prisma.payment.findUnique({
+    where: { bookingId },
+  });
 
-    const transectoinId = String(uuidv7());
+  let paymentRecord = existingPayment;
 
-    const paymentData = await tx.payment.create({
+  if (!paymentRecord) {
+    paymentRecord = await prisma.payment.create({
       data: {
         bookingId: booking.id,
         amount: bookingPrice,
-        transactionId: transectoinId,
+        transactionId: String(uuidv7()),
       },
     });
+  }
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency: "bdt",
-            product_data: {
-              name: `Booking for ${booking.turf.name} on ${booking.date.toDateString()} (Custom Slot)`,
-            },
-            unit_amount: paymentData.amount * 100,
-          },
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        bookingId: booking.id,
-        paymentId: paymentData.id,
-      },
-      success_url: `${envVars.FRONTEND_URL}/dashboard/payments/payment-success`,
-      cancel_url: `${envVars.FRONTEND_URL}/dashboard/bookings`,
+  let paymentUrl: string;
+  try {
+    paymentUrl = await createStripeCheckoutSession({
+      productName: `Booking for ${booking.turf.name} on ${booking.date.toDateString()} (Custom Slot)`,
+      amount: paymentRecord.amount,
+      bookingId: booking.id,
+      paymentId: paymentRecord.id,
     });
-
-    return {
-      booking,
-      paymentData,
-      paymentUrl: session.url,
-    };
-  });
+  } catch {
+    if (!existingPayment) {
+      await prisma.payment.delete({ where: { id: paymentRecord.id } });
+    }
+    throw new AppError(
+      status.BAD_GATEWAY,
+      "Payment session could not be created. Please try again.",
+    );
+  }
 
   return {
-    booking: result.booking,
-    payment: result.paymentData,
-    paymentUrl: result.paymentUrl,
-  }
+    booking,
+    payment: paymentRecord,
+    paymentUrl,
+  };
 };
 
 const getMyBookings = async (userId: string, query: IQueryParams) => {
@@ -363,10 +345,45 @@ const getMyBookings = async (userId: string, query: IQueryParams) => {
         include: { slot: true },
       },
       customSlot: true,
+      payment: true,
     });
 
   const result = await bookingQuery.execute();
   return result;
+};
+
+const getBookingById = async (userId: string, bookingId: string) => {
+  const player = await prisma.player.findUnique({
+    where: { userId },
+  });
+
+  if (!player) {
+    throw new AppError(status.NOT_FOUND, "Player profile not found!");
+  }
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId, isDeleted: false },
+    include: {
+      turf: true,
+      turfSlot: { include: { slot: true } },
+      customSlot: true,
+      payment: true,
+      player: true,
+    },
+  });
+
+  if (!booking) {
+    throw new AppError(status.NOT_FOUND, "Booking not found!");
+  }
+
+  if (booking.playerId !== player.id) {
+    throw new AppError(
+      status.FORBIDDEN,
+      "You are not authorized to view this booking!",
+    );
+  }
+
+  return booking;
 };
 
 const getTurfBookings = async (
@@ -565,9 +582,9 @@ const acceptBooking = async (userId: string, bookingId: string) => {
     where: {
       date: booking.date,
       turfId: booking.turfId,
-      status: BookingStatus.CONFIRMED,
+      status: { in: [...BLOCKING_BOOKING_STATUSES] },
       isDeleted: false,
-      NOT: { id: bookingId }
+      NOT: { id: bookingId },
     },
     include: {
       turfSlot: { include: { slot: true } },
@@ -591,46 +608,96 @@ const acceptBooking = async (userId: string, bookingId: string) => {
   const result = await prisma.$transaction(async (tx) => {
     const updatedBooking = await tx.booking.update({
       where: { id: bookingId },
-      data: { status: BookingStatus.CONFIRMED },
+      data: {
+        status: booking.customSlotId
+          ? BookingStatus.PENDING
+          : BookingStatus.CONFIRMED,
+      },
     });
 
     if (booking.customSlotId) {
       await tx.customTurfSlot.update({
         where: { id: booking.customSlotId },
-        data: { 
+        data: {
           status: CustomSlotStatus.ACCEPTED,
-          isBooked: true 
-        }
+          isBooked: true,
+        },
       });
     }
 
     return updatedBooking;
   });
 
-  // Notify Player
+  const acceptMessage = booking.customSlotId
+    ? `Your custom slot booking for ${booking.turf.name} on ${booking.date.toDateString()} was accepted. Please complete payment.`
+    : `Your booking for ${booking.turf.name} on ${booking.date.toDateString()} has been accepted!`;
+
   await NotificationService.createNotification({
     title: "Booking Accepted",
-    message: `Your booking for ${booking.turf.name} on ${booking.date.toDateString()} has been accepted!`,
+    message: acceptMessage,
     userId: booking.player?.userId || booking.playerId,
-    type: NotificationType.BOOKING
+    type: NotificationType.BOOKING,
   });
 
-  // Send Confirmation Email to Player
-  await sendEmail({
-    to: booking.player?.email,
-    subject: "Booking Approved - Turf Management",
-    templateName: "booking-confirmation",
-    templateData: {
-      playerName: booking.player?.name,
-      turfName: booking.turf.name,
-      date: booking.date.toDateString(),
-      startTime: requestedRange.startTime,
-      endTime: requestedRange.endTime,
-      price: booking.customSlot?.price || booking.turfSlot?.price,
-    },
-  });
+  if (!booking.customSlotId && booking.player?.email) {
+    await sendEmail({
+      to: booking.player.email,
+      subject: "Booking Approved - Turf Management",
+      templateName: "booking-confirmation",
+      templateData: {
+        playerName: booking.player.name,
+        turfName: booking.turf.name,
+        date: booking.date.toDateString(),
+        startTime: requestedRange.startTime,
+        endTime: requestedRange.endTime,
+        price: booking.turfSlot?.price,
+      },
+    });
+  }
 
   return result;
+};
+
+const completeBooking = async (userId: string, bookingId: string) => {
+  const owner = await prisma.turfOwner.findUnique({ where: { userId } });
+
+  if (!owner) {
+    throw new AppError(
+      status.FORBIDDEN,
+      "Only turf owners can mark bookings as completed!",
+    );
+  }
+
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { turf: true },
+  });
+
+  if (!booking) {
+    throw new AppError(status.NOT_FOUND, "Booking not found!");
+  }
+
+  if (booking.turf.ownerId !== owner.id) {
+    throw new AppError(
+      status.FORBIDDEN,
+      "You are not authorized to complete this booking!",
+    );
+  }
+
+  if (
+    booking.status !== BookingStatus.CONFIRMED ||
+    booking.paymentStatus !== PaymentStatus.PAID
+  ) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "Only confirmed and paid bookings can be marked completed!",
+    );
+  }
+
+  return prisma.booking.update({
+    where: { id: bookingId },
+    data: { status: BookingStatus.COMPLETED },
+  });
 };
 
 const getAllBookings = async (query: IQueryParams) => {
@@ -662,9 +729,11 @@ export const BookingService = {
   makePaymentForCustomSlot,
   createBookingForCustomSlot,
   getMyBookings,
+  getBookingById,
   getTurfBookings,
   cancelBooking,
   rejectBooking,
   acceptBooking,
+  completeBooking,
   getAllBookings,
 };

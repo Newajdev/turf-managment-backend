@@ -36,6 +36,7 @@ interface EnvConfig {
   GOOGLE_CALLBACK_URL: string;
   STRIPE_SECRET_KEY: string;
   STRIPE_WEBHOOK_SECRET: string;
+  STRIPE_CURRENCY: string;
 }
 
 const loadEnvVariables = (): EnvConfig => {
@@ -111,6 +112,7 @@ const loadEnvVariables = (): EnvConfig => {
     GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL as string,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY as string,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET as string,
+    STRIPE_CURRENCY: (process.env.STRIPE_CURRENCY as string).toLowerCase(),
   };
 };
 

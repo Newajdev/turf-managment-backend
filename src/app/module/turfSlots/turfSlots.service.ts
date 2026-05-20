@@ -4,7 +4,11 @@ import { status } from "http-status";
 import { ICustomTurfSlot, ITurfSlot } from "./turfSlots.interface";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IQueryParams } from "../../interfaces/query.interface";
-import { calculateDurationInMinutes } from "../../utils/calculateTime";
+import {
+  calculateDurationInMinutes,
+  isTimeOverlap,
+} from "../../utils/calculateTime";
+import { BookingStatus } from "../../../generated/prisma/enums";
 
 
 const createTurfSlot = async (userId: string, payload: ITurfSlot) => {

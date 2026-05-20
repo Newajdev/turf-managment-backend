@@ -1,8 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Stripe from "stripe";
 import { prisma } from "../../lib/prisma";
-import { PaymentStatus } from "../../../generated/prisma/enums";
+import {
+  BookingStatus,
+  NotificationType,
+  PaymentStatus,
+} from "../../../generated/prisma/enums";
 import { sendEmail } from "../../utils/email";
+import { NotificationService } from "../notification/notification.service";
 
 const handleStripeWebhookEvent = async (event: Stripe.Event) => {
   const existingPayment = await prisma.payment.findUnique({
@@ -20,7 +25,7 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
 
   switch (event.type) {
     case "checkout.session.completed": {
-      const session = event.data.object;
+      const session = event.data.object as Stripe.Checkout.Session;
 
       const bookingId = session.metadata?.bookingId;
       const paymentId = session.metadata?.paymentId;
@@ -34,7 +39,12 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
 
       const booking = await prisma.booking.findUnique({
         where: { id: bookingId },
-        include: { player: true, turf: true }
+        include: {
+          player: true,
+          turf: true,
+          turfSlot: { include: { slot: true } },
+          customSlot: true,
+        },
       });
 
       if (!booking) {
@@ -45,14 +55,14 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
         };
       }
 
+      const isPaid = session.payment_status === "paid";
+
       await prisma.$transaction(async (tx) => {
         await tx.booking.update({
           where: { id: bookingId },
           data: {
-            paymentStatus:
-              session.payment_status === "paid"
-                ? PaymentStatus.PAID
-                : PaymentStatus.UNPAID,
+            paymentStatus: isPaid ? PaymentStatus.PAID : PaymentStatus.UNPAID,
+            ...(isPaid ? { status: BookingStatus.CONFIRMED } : {}),
           },
         });
 
@@ -60,16 +70,43 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
           where: { id: paymentId },
           data: {
             stripeEventId: event.id,
-            status:
-              session.payment_status === "paid"
-                ? PaymentStatus.PAID
-                : PaymentStatus.UNPAID,
+            status: isPaid ? PaymentStatus.PAID : PaymentStatus.UNPAID,
             paymentGatewayData: session as any,
           },
         });
       });
 
-      if (booking && booking.player) {
+      if (isPaid && booking.player) {
+        const owner = await prisma.turfOwner.findUnique({
+          where: { id: booking.turf.ownerId },
+        });
+
+        if (owner) {
+          NotificationService.createNotification({
+            title: "Booking Confirmed",
+            message: `Payment received for ${booking.turf.name} on ${booking.date.toDateString()}.`,
+            userId: owner.userId,
+            type: NotificationType.BOOKING,
+          }).catch((err) => console.error("Owner notification error:", err));
+        }
+
+        await sendEmail({
+          to: booking.player.email,
+          subject: "Booking Confirmed - Turf Management",
+          templateName: "booking-confirmation",
+          templateData: {
+            playerName: booking.player.name,
+            turfName: booking.turf.name,
+            date: booking.date.toDateString(),
+            startTime:
+              booking.turfSlot?.slot.startTime ??
+              booking.customSlot?.startTime,
+            endTime:
+              booking.turfSlot?.slot.endTime ?? booking.customSlot?.endTime,
+            price: booking.turfSlot?.price ?? booking.customSlot?.price,
+          },
+        }).catch((err) => console.error("Confirmation email error:", err));
+
         await sendEmail({
           to: booking.player.email,
           subject: "Payment Success - Turf Management",
@@ -80,25 +117,59 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
             date: new Date().toDateString(),
             bookingId: bookingId,
             amount: (session.amount_total || 0) / 100,
-            turfName: booking.turf.name
+            turfName: booking.turf.name,
           },
-        });
+        }).catch((err) => console.error("Payment success email error:", err));
       }
 
       console.log(
-        `Processed checkout.session.completed for booking ID ${bookingId} with payment status ${session.payment_status}`,
+        `Processed checkout.session.completed for booking ${bookingId}, paid=${isPaid}`,
       );
       break;
     }
     case "checkout.session.expired": {
-      const session = event.data.object;
-      console.log(`Checkout session expired for session ID ${session.id}`);
+      const session = event.data.object as Stripe.Checkout.Session;
+      const bookingId = session.metadata?.bookingId;
+      const paymentId = session.metadata?.paymentId;
+
+      if (bookingId && paymentId) {
+        await prisma.payment.update({
+          where: { id: paymentId },
+          data: { status: PaymentStatus.FAILED },
+        });
+      }
+
+      console.log(`Checkout session expired: ${session.id}`);
       break;
     }
 
     case "payment_intent.payment_failed": {
-      const session = event.data.object;
-      console.log(`Payment failed for session ID ${session.id}`);
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const bookingId = paymentIntent.metadata?.bookingId;
+      const paymentId = paymentIntent.metadata?.paymentId;
+
+      if (bookingId && paymentId) {
+        const booking = await prisma.booking.findUnique({
+          where: { id: bookingId },
+          include: { player: true, turf: true },
+        });
+
+        await prisma.payment.update({
+          where: { id: paymentId },
+          data: { status: PaymentStatus.FAILED },
+        });
+
+        if (booking?.player) {
+          NotificationService.createNotification({
+            title: "Payment Failed",
+            message: `Your payment for ${booking.turf.name} could not be processed. Please try again.`,
+            userId: booking.player.userId,
+            type: NotificationType.PAYMENT,
+          }).catch((err) => console.error("Payment failure notification:", err));
+        }
+      }
+
+      console.log(`Payment failed: ${paymentIntent.id}`);
       break;
     }
     default:
