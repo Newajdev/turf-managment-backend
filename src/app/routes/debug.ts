@@ -16,7 +16,7 @@ debugRouter.get("/email", async (req, res) => {
     res.json({ success: true, message: "Test email sent" });
   } catch (err) {
     console.error("Debug email error:", err);
-    res.status(500).json({ success: false, error: err?.message || "Unknown error" });
+    res.status(500).json({ success: false, error: err || "Unknown error" });
   }
 });
 
