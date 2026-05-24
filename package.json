@@ -6,19 +6,17 @@
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "prisma generate && tsc",
-    "start": "node dist/server.js",
-    "lint": "eslint ./src/**/*",
-    "migrate": "prisma migrate dev",
-    "generate": "prisma generate",
-    "push": "prisma db push",
-    "pull": "prisma db pull",
-    "studio": "prisma studio",
-    "stripe:webhook": "stripe listen --forward-to localhost:5000/webhook",
-    "postinstall": "prisma generate",
-    "test": "echo \"No test specified\" && exit 0"
-  },
+  "dev": "tsx watch src/server.ts",
+  "build": "prisma generate && tsc",
+  "start": "node dist/server.js",
+  "migrate": "prisma migrate dev",
+  "generate": "prisma generate",
+  "push": "prisma db push",
+  "pull": "prisma db pull",
+  "studio": "prisma studio",
+  "lint": "eslint ./src/**/*",
+  "test": "echo \"No test specified\" && exit 0"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -44,7 +42,6 @@
     "stripe": "^17.7.0",
     "tsup": "^8.5.1",
     "uuid": "^13.0.0",
-    "vercel": "^50.44.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

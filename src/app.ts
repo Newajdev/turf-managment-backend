@@ -18,11 +18,9 @@ void seedSystemAdmin().catch((err) =>
 );
 
 const app: Application = express();
+app.set("trust proxy", 1);
 
-// Enable URL-encoded form data parsing
-app.use(express.urlencoded({ extended: true }));
 
-// Middleware to parse JSON bodies
 app.use(
   cors({
     origin: [
@@ -50,6 +48,12 @@ const authRateLimiter = rateLimit({
   },
 });
 
+app.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  PaymentController.handleStripeWebhookEvent,
+);
+
 app.use("/api/v1/auth/login", authRateLimiter);
 app.use("/api/v1/auth/register-player", authRateLimiter);
 app.use("/api/v1/auth/forgot-password", authRateLimiter);
@@ -61,11 +65,6 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", toNodeHandler(auth));
 
-app.post(
-  "/webhook",
-  express.raw({ type: "application/json" }),
-  PaymentController.handleStripeWebhookEvent,
-);
 
 app.use("/api/v1", IndexRoutes);
 
