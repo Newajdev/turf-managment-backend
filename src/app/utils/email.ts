@@ -3,10 +3,8 @@ import ejs from "ejs";
 import status from "http-status";
 import nodemailer from "nodemailer";
 import path from "path";
-import { envVars } from "../config/env";
 import AppError from "../errorHelpers/AppError";
-
-// Removed import of hardcoded templates; using file-based EJS templates.
+import { envVars } from "../config/env";
 
 const transporter = nodemailer.createTransport({
   host: envVars.EMAIL_SENDER_SMTP_HOST,
@@ -18,21 +16,16 @@ const transporter = nodemailer.createTransport({
   port: Number(envVars.EMAIL_SENDER_SMTP_PORT),
 });
 
-export enum EmailTemplate {
-  EmailVerificationOTP = "emailVerificationOTP",
-  ForgotPasswordOTP = "forgotPasswordOTP",
-  PasswordChanged = "password-changed",
-  TurfOwnerCreated = "turfOwnerCreated",
-  BookingConfirmation = "booking-confirmation",
-  PaymentSuccess = "payment-success",
-  MaintenanceAlert = "maintenance-alert",
-}
-
 interface SendEmailOptions {
   to: string;
   subject: string;
-  templateName: EmailTemplate;
+  templateName: string;
   templateData: Record<string, any>;
+  attachments?: {
+    filename: string;
+    content: Buffer | string;
+    contentType: string;
+  }[];
 }
 
 export const sendEmail = async ({
@@ -40,37 +33,29 @@ export const sendEmail = async ({
   templateData,
   templateName,
   to,
+  attachments,
 }: SendEmailOptions) => {
   try {
-    // Previously fetched template string from hardcoded map. Now we will rely on renderFile to throw if file missing.
-    // Ensure templateName is provided.
-    if (!templateName) {
-      throw new Error(`Template name is required`);
-    }
-
-    // Render the EJS template file
     const templatePath = path.resolve(
-      __dirname,
-      "../templates/emails",
-      `${templateName}.ejs`,
+      process.cwd(),
+      `src/app/templates/emails/${templateName}.ejs`,
     );
+
     const html = await ejs.renderFile(templatePath, templateData);
 
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: envVars.EMAIL_SENDER_SMTP_FROM,
-      to,
-      subject,
-      html,
+      to: to,
+      subject: subject,
+      html: html,
+      attachments: attachments?.map((attachment) => ({
+        filename: attachment.filename,
+        content: attachment.content,
+        contentType: attachment.contentType,
+      })),
     });
 
-transporter.verify((error) => {
-  if (error) {
-    console.error("SMTP Error:", error);
-  } else {
-    console.log("SMTP Server is ready");
-  }
-});
-
+    console.log(`Email sent to ${to} : ${info.messageId}`);
   } catch (error: any) {
     console.log("Email Sending Error", error.message);
     throw new AppError(status.INTERNAL_SERVER_ERROR, "Failed to send email");
