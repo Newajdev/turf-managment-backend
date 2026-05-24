@@ -9,7 +9,8 @@ import AppError from "../../errorHelpers/AppError";
 import { sendEmail, EmailTemplate } from "../../utils/email";
 import { envVars } from "../../config/env";
 import { auth } from "../../lib/auth";
-
+import ejs from "ejs";
+import path from "path";
 const registerPlayer = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.registerPlayer(req.body);
   const { accessToken, refreshToken, betterAuthToken, user, player } = result;
@@ -205,66 +206,15 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 });
 
 
-const googleLogin = catchAsync((req: Request, res: Response) => {
-  const redirectPath = (req.query.redirect as string);
+const googleLogin = catchAsync(async (req: Request, res: Response) => {
+  const redirectPath = (req.query.redirect as string) || "/";
   const encodedRedirectPath = encodeURIComponent(redirectPath);
-
   const betterAuthUrl = envVars.BETTER_AUTH_URL;
   const callbackURL = `${betterAuthUrl}/api/v1/auth/google/success?redirect=${encodedRedirectPath}`;
 
-  res.send(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting to Google...</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f8fafc; color: #1e293b; }
-        .container { text-align: center; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 0 auto 16px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="loader"></div>
-        <p>Connecting to Google...</p>
-    </div>
-
-    <script>
-        (async () => {
-            try {
-                const response = await fetch("${betterAuthUrl}/api/auth/sign-in/social", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        provider: "google",
-                        callbackURL: "${callbackURL}"
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    throw new Error("No redirect URL returned from auth server");
-                }
-            } catch (error) {
-                console.error("Redirect Error:", error);
-                document.body.innerHTML = \`
-                    <div style="text-align: center; color: #ef4444; padding: 20px;">
-                        <h3>Login Failed</h3>
-                        <p>Error: \${error.message}</p>
-                        <button onclick="window.location.reload()" style="padding: 8px 16px; cursor: pointer;">Try Again</button>
-                    </div>\`;
-            }
-        })();
-    </script>
-</body>
-</html>
-  `);
+  const templatePath = path.resolve(__dirname, "../../templates/google-login.ejs");
+  const html = await ejs.renderFile(templatePath, { callbackURL });
+  res.send(html);
 });
 
 
