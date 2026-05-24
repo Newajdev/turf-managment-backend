@@ -6,7 +6,7 @@ import path from "path";
 import { envVars } from "../config/env";
 import AppError from "../errorHelpers/AppError";
 
-import { emailTemplates } from "../templates/emailTemplates";
+// Removed import of hardcoded templates; using file-based EJS templates.
 
 const transporter = nodemailer.createTransport({
   host: envVars.EMAIL_SENDER_SMTP_HOST,
@@ -18,10 +18,20 @@ const transporter = nodemailer.createTransport({
   port: Number(envVars.EMAIL_SENDER_SMTP_PORT),
 });
 
+export enum EmailTemplate {
+  EmailVerificationOTP = "emailVerificationOTP",
+  ForgotPasswordOTP = "forgotPasswordOTP",
+  PasswordChanged = "password-changed",
+  TurfOwnerCreated = "turfOwnerCreated",
+  BookingConfirmation = "booking-confirmation",
+  PaymentSuccess = "payment-success",
+  MaintenanceAlert = "maintenance-alert",
+}
+
 interface SendEmailOptions {
   to: string;
   subject: string;
-  templateName: string;
+  templateName: EmailTemplate;
   templateData: Record<string, any>;
 }
 
@@ -32,19 +42,21 @@ export const sendEmail = async ({
   to,
 }: SendEmailOptions) => {
   try {
-    const templateString = emailTemplates[templateName];
-
-    if (!templateString) {
-      throw new Error(`Template ${templateName} not found`);
+    // Previously fetched template string from hardcoded map. Now we will rely on renderFile to throw if file missing.
+    // Ensure templateName is provided.
+    if (!templateName) {
+      throw new Error(`Template name is required`);
     }
 
-    const html = ejs.render(templateString, templateData);
+    // Render the EJS template file
+    const templatePath = path.resolve(__dirname, "../../templates/emails", `${templateName}.ejs`);
+    const html = await ejs.renderFile(templatePath, templateData);
 
     await transporter.sendMail({
       from: envVars.EMAIL_SENDER_SMTP_FROM,
-      to: to,
-      subject: subject,
-      html: html,
+      to,
+      subject,
+      html,
     });
   } catch (error: any) {
     console.log("Email Sending Error", error.message);

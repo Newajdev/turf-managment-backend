@@ -6,7 +6,7 @@ import status from "http-status";
 import { tokenUtils } from "../../utils/token";
 import { CookieUtils } from "../../utils/cookie";
 import AppError from "../../errorHelpers/AppError";
-import { sendEmail } from "../../utils/email";
+import { sendEmail, EmailTemplate } from "../../utils/email";
 import { envVars } from "../../config/env";
 import { auth } from "../../lib/auth";
 
@@ -129,7 +129,7 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
   sendEmail({
     to: result.user.email,
     subject: "Password Changed Successfully",
-    templateName: "password-changed",
+    templateName: EmailTemplate.PasswordChanged,
     templateData: {
       name: result.user.name,
     },

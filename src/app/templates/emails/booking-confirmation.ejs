@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation - Turf Management</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .wrapper { width: 100%; background-color: #f8fafc; padding: 40px 0; }
+        .container { width: 90%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .header { background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); padding: 40px 20px; text-align: center; color: white; }
+        .header-icon { font-size: 40px; margin-bottom: 12px; }
+        .header-title { font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin: 0; }
+        .header-subtitle { font-size: 14px; color: rgba(255,255,255,0.75); margin-top: 8px; }
+        .content { padding: 40px; }
+        .greeting { font-size: 20px; font-weight: 700; color: #064e3b; margin-bottom: 16px; }
+        .message { font-size: 16px; line-height: 1.6; color: #475569; margin-bottom: 32px; }
+        .card { background-color: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #10b981; border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+        .card-title { font-size: 11px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+        .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { font-weight: 600; color: #64748b; font-size: 14px; }
+        .detail-value { color: #1e293b; font-size: 14px; text-align: right; }
+        .price-value { font-weight: 700; color: #064e3b; font-size: 16px; }
+        .notice { background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 16px; text-align: center; color: #065f46; font-size: 14px; margin-bottom: 24px; }
+        .footer { padding: 32px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #f1f5f9; }
+        .footer-brand { font-weight: 700; color: #064e3b; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="header">
+                <div class="header-icon">✅</div>
+                <div class="header-title">Booking Confirmed</div>
+                <div class="header-subtitle">Your turf session is all set!</div>
+            </div>
+            <div class="content">
+                <div class="greeting">Your Turf is Ready, <%= playerName %>!</div>
+                <p class="message">Great news! Your booking has been <strong>confirmed</strong>. Here are your session details — please keep this for your records.</p>
+                <div class="card">
+                    <div class="card-title">Booking Details</div>
+                    <div class="detail-row">
+                        <span class="detail-label">🏟️ Turf</span>
+                        <span class="detail-value"><%= turfName %></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">📅 Date</span>
+                        <span class="detail-value"><%= date %></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">⏰ Time</span>
+                        <span class="detail-value"><%= startTime %> – <%= endTime %></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">💰 Total Price</span>
+                        <span class="detail-value price-value"><%= price %> BDT</span>
+                    </div>
+                </div>
+                <div class="notice">
+                    ⏱️ Please arrive at least <strong>10 minutes</strong> before your slot. Enjoy your game!
+                </div>
+            </div>
+            <div class="footer">
+                <div class="footer-brand">Turf Booking System</div>
+                &copy; 2026 All rights reserved. &bull; Powered by Turf Management Platform
+            </div>
+        </div>
+    </div>
+</body>
+</html>

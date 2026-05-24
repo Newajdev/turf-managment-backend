@@ -14,7 +14,7 @@ import { status } from "http-status";
 import { tokenUtils } from "../../utils/token";
 import { jwtUtils } from "../../utils/jwt";
 import { envVars } from "../../config/env";
-import { sendEmail } from "../../utils/email";
+import { sendEmail, EmailTemplate } from "../../utils/email";
 import { NotificationService } from "../notification/notification.service";
 import { NotificationType } from "../../../generated/prisma/enums";
 
@@ -142,7 +142,7 @@ const createTurfOwner = async (payload: ICreateTurfOwner) => {
     await sendEmail({
       to: email,
       subject: "Welcome to Turf Management - Your Account is Ready",
-      templateName: "turfOwnerCreated",
+      templateName: EmailTemplate.TurfOwnerCreated,
       templateData: {
         name,
         email,
@@ -332,7 +332,7 @@ const changePassword = async (
   await sendEmail({
     to: session.user.email,
     subject: "Security Alert: Password Changed",
-    templateName: "password-changed",
+    templateName: EmailTemplate.PasswordChanged,
     templateData: {
       name: session.user.name,
     },

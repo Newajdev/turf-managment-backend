@@ -8,7 +8,7 @@ import { QueryBuilder } from "../../utils/QueryBuilder";
 import { IQueryParams } from "../../interfaces/query.interface";
 import { NotificationService } from "../notification/notification.service";
 import { NotificationType } from "../../../generated/prisma/enums";
-import { sendEmail } from "../../utils/email";
+import { sendEmail, EmailTemplate } from "../../utils/email";
 
 const createTurf = async (userId: string, payload: ITurfCreatePayload) => {
   const turfOwner = await prisma.turfOwner.findUnique({
@@ -168,7 +168,7 @@ const updateTurf = async (
         await sendEmail({
           to: booking.player.email,
           subject: "Urgent: Turf Maintenance Alert",
-          templateName: "maintenance-alert",
+          templateName: EmailTemplate.MaintenanceAlert,
           templateData: {
             playerName: booking.player.name,
             turfName: result.name,

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Alert - Turf Management</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .wrapper { width: 100%; background-color: #f8fafc; padding: 40px 0; }
+        .container { width: 90%; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .header { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); padding: 40px 20px; text-align: center; color: white; }
+        .header-icon { font-size: 40px; margin-bottom: 12px; }
+        .header-title { font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin: 0; }
+        .header-subtitle { font-size: 14px; color: rgba(255,255,255,0.80); margin-top: 8px; }
+        .content { padding: 40px; }
+        .greeting { font-size: 20px; font-weight: 700; color: #b45309; margin-bottom: 16px; }
+        .message { font-size: 16px; line-height: 1.6; color: #475569; margin-bottom: 24px; }
+        .alert-box { background-color: #fffbeb; border: 1px solid #fcd34d; border-left: 4px solid #f59e0b; border-radius: 12px; padding: 24px; margin: 24px 0; }
+        .alert-box-title { font-size: 12px; font-weight: 700; color: #92400e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        .slot-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 15px; color: #78350f; }
+        .slot-label { font-weight: 600; }
+        .refund-badge { display: inline-block; background-color: #10b981; color: white; border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 700; margin-top: 12px; }
+        .apology-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; color: #475569; font-size: 15px; line-height: 1.7; }
+        .divider { border: none; border-top: 1px solid #f1f5f9; margin: 32px 0; }
+        .footer { padding: 32px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #f1f5f9; }
+        .footer-brand { font-weight: 700; color: #064e3b; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="header">
+                <div class="header-icon">🔧</div>
+                <div class="header-title">Maintenance Alert</div>
+                <div class="header-subtitle">Important notice regarding your booking</div>
+            </div>
+            <div class="content">
+                <div class="greeting">Service Interruption Notice</div>
+                <p class="message">
+                    Hello <strong><%= playerName %></strong>, we regret to inform you that your upcoming booking at <strong><%= turfName %></strong> has been affected by unscheduled maintenance work.
+                </p>
+                <div class="alert-box">
+                    <div class="alert-box-title">🗓 Affected Booking Slot</div>
+                    <div class="slot-row">
+                        <span class="slot-label">Date:</span>
+                        <span><%= date %></span>
+                    </div>
+                    <div class="slot-row">
+                        <span class="slot-label">Time:</span>
+                        <span><%= startTime %> – <%= endTime %></span>
+                    </div>
+                    <div class="slot-row">
+                        <span class="slot-label">Venue:</span>
+                        <span><%= turfName %></span>
+                    </div>
+                    <div>
+                        <span class="refund-badge">✔ Eligible for Full Refund</span>
+                    </div>
+                </div>
+                <div class="apology-box">
+                    We sincerely apologize for this inconvenience. Our support team will contact you shortly to <strong>reschedule your booking</strong> or process a <strong>full refund</strong> at your preference.
+                </div>
+            </div>
+            <div class="footer">
+                <div class="footer-brand">Turf Booking System</div>
+                &copy; 2026 All rights reserved. &bull; Powered by Turf Management Platform
+            </div>
+        </div>
+    </div>
+</body>
+</html>
