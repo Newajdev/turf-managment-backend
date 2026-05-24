@@ -36,9 +36,12 @@ export const sendEmail = async ({
   attachments,
 }: SendEmailOptions) => {
   try {
-    const templatePath = path.resolve(
+    const templatePath = path.join(
       __dirname,
-      `src/app/templates/emails/${templateName}.ejs`,
+      "..",
+      "templates",
+      "emails",
+      `${templateName}.ejs`,
     );
 
     const html = await ejs.renderFile(templatePath, templateData);
@@ -68,9 +71,8 @@ export const sendEmail = async ({
    
   } catch (error: any) {
     console.error("FULL EMAIL ERROR:", error);
-    // throw new AppError(status.INTERNAL_SERVER_ERROR, "Failed to send email");
+    
+    throw new AppError(status.INTERNAL_SERVER_ERROR, "Failed to send email");
 
-    console.error("FULL EMAIL ERROR:", error);
-    return;
   }
 };
