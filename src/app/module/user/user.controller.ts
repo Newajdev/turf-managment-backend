@@ -90,6 +90,33 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getFavoriteTurfs = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user;
+  const result = await UserService.getFavoriteTurfs(userId);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Favorite turfs retrieved successfully",
+    data: result,
+  });
+});
+
+const toggleFavoriteTurf = catchAsync(async (req: Request, res: Response) => {
+  const { userId } = req.user;
+  const { turfId } = req.params;
+  const result = await UserService.toggleFavoriteTurf(userId, turfId as string);
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: result.isFavorite
+      ? "Turf added to favorites"
+      : "Turf removed from favorites",
+    data: result,
+  });
+});
+
 export const UserController = {
   getMyProfile,
   updateMyProfile,
@@ -97,4 +124,6 @@ export const UserController = {
   blockUser,
   getAllUsers,
   uploadImage,
+  getFavoriteTurfs,
+  toggleFavoriteTurf,
 };

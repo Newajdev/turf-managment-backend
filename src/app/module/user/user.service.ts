@@ -232,6 +232,67 @@ const updateProfilePhoto = async (userId: string, role: Role, photoUrl: string) 
   return result;
 };
 
+const getFavoriteTurfs = async (userId: string) => {
+  const player = await prisma.player.findUnique({
+    where: { userId, isDeleted: false },
+    include: {
+      favoriteTurfs: {
+        include: { sportTypes: true },
+      },
+    },
+  });
+
+  if (!player) {
+    throw new AppError(status.FORBIDDEN, "Only players can access favorites!");
+  }
+
+  return player.favoriteTurfs;
+};
+
+const toggleFavoriteTurf = async (userId: string, turfId: string) => {
+  const player = await prisma.player.findUnique({
+    where: { userId, isDeleted: false },
+    include: {
+      favoriteTurfs: { where: { id: turfId }, select: { id: true } },
+    },
+  });
+
+  if (!player) {
+    throw new AppError(status.FORBIDDEN, "Only players can save turfs!");
+  }
+
+  const turf = await prisma.turf.findUnique({ where: { id: turfId } });
+  if (!turf) {
+    throw new AppError(status.NOT_FOUND, "Turf not found!");
+  }
+
+  const isFavorite = player.favoriteTurfs.length > 0;
+
+  await prisma.$transaction(async (tx) => {
+    if (isFavorite) {
+      await tx.player.update({
+        where: { id: player.id },
+        data: { favoriteTurfs: { disconnect: { id: turfId } } },
+      });
+      await tx.turf.update({
+        where: { id: turfId },
+        data: { saveCount: { decrement: 1 } },
+      });
+    } else {
+      await tx.player.update({
+        where: { id: player.id },
+        data: { favoriteTurfs: { connect: { id: turfId } } },
+      });
+      await tx.turf.update({
+        where: { id: turfId },
+        data: { saveCount: { increment: 1 } },
+      });
+    }
+  });
+
+  return { isFavorite: !isFavorite, turfId };
+};
+
 export const UserService = {
   getMyProfile,
   updateMyProfile,
@@ -239,4 +300,6 @@ export const UserService = {
   blockUser,
   getAllUsers,
   updateProfilePhoto,
+  getFavoriteTurfs,
+  toggleFavoriteTurf,
 };

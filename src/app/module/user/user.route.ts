@@ -27,6 +27,18 @@ router.get(
   UserController.getAllUsers,
 );
 
+router.get(
+  "/favorites",
+  checkAuth(Role.PLAYER),
+  UserController.getFavoriteTurfs,
+);
+
+router.post(
+  "/favorites/:turfId",
+  checkAuth(Role.PLAYER),
+  UserController.toggleFavoriteTurf,
+);
+
 router.patch(
   "/update-profile",
   checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),

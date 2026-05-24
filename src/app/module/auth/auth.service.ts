@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Role, UserStatus } from "../../../generated/prisma/enums";
 import { auth } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
@@ -400,7 +401,7 @@ const verifyEmail = async (payload: IVerifyEmail) => {
     name: result.user.name,
     status: result.user.userStatus,
     isDeleted: result.user.isDeleted,
-    emailVerified: result.user.emailVerified,
+    emailVerified: true,
     needPasswordChange: result.user.needPasswordChange,
   };
 
@@ -490,7 +491,7 @@ const resetPassword = async (
   });
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 const googleLoginSuccess = async (session: Record<string, any>) => {
   const isPlayerExists = await prisma.player.findUnique({
     where: {

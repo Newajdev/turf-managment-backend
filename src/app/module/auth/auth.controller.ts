@@ -206,10 +206,9 @@ const resetPassword = catchAsync(async (req: Request, res: Response) => {
 
 
 const googleLogin = catchAsync((req: Request, res: Response) => {
-  const redirectPath = (req.query.redirect as string) || "/dashboard";
+  const redirectPath = (req.query.redirect as string);
   const encodedRedirectPath = encodeURIComponent(redirectPath);
 
-  // URLs for the script
   const betterAuthUrl = envVars.BETTER_AUTH_URL;
   const callbackURL = `${betterAuthUrl}/api/v1/auth/google/success?redirect=${encodedRedirectPath}`;
 

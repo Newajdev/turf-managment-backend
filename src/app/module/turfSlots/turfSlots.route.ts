@@ -30,11 +30,17 @@ router.post(
   TurfSlotsController.createCustomTurfSlot,
 );
 
-// Retrieval
+// Retrieval — register /custom before /:turfId so "custom" is not treated as a turf id
+router.get(
+  "/custom",
+  checkAuth(Role.PLAYER),
+  TurfSlotsController.getAllCustomSlotsByPlayer,
+);
+
+router.get("/custom/:turfId", checkAuth(Role.PLAYER), TurfSlotsController.getCustomSlotsByPlayer);
+
 router.get("/:turfId", TurfSlotsController.getRegularSlotsByTurf); // Public
 router.get("/:turfId/availability", TurfSlotsController.getAvailableSlots); // Public
-
-router.get("/custom/:turfId", checkAuth(Role.PLAYER), TurfSlotsController.getCustomSlotsByPlayer); // Protected
 
 router.patch(
   "/custom/:id",

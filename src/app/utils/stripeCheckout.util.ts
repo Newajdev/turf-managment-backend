@@ -29,7 +29,7 @@ export const createStripeCheckoutSession = async (params: {
         bookingId: params.bookingId,
         paymentId: params.paymentId,
       },
-      success_url: `${envVars.FRONTEND_URL}/dashboard/payments/payment-success`,
+      success_url: `${envVars.FRONTEND_URL}/dashboard/payments/payment-success?booking_id=${params.bookingId}`,
       cancel_url: `${envVars.FRONTEND_URL}/dashboard/bookings`,
     });
 

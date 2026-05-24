@@ -24,13 +24,13 @@ router.delete(
 router.post(
   "/",
   checkAuth(Role.TURF_OWNER),
+  multerUpload.array("images", 5),
   validateRequest(TurfValidations.createTurfSchema),
   TurfController.createTurf,
 );
 
 router.get(
   "/",
-  // checkAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),
   TurfController.getAllTurfs,
 );
 
@@ -42,7 +42,6 @@ router.get(
 
 router.get(
   "/:id",
-  // heckAuth(Role.PLAYER, Role.TURF_OWNER, Role.SYSTEM_ADMIN),
   TurfController.getSingleTurf,
 );
 

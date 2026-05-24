@@ -90,6 +90,33 @@ const getRegularSlotsByTurf = async (turfId: string, query: IQueryParams) => {
   return result;
 };
 
+const getAllCustomSlotsByPlayer = async (userId: string, query: IQueryParams) => {
+  const player = await prisma.player.findUnique({
+    where: { userId },
+  });
+
+  if (!player) {
+    throw new AppError(status.NOT_FOUND, "Player profile not found!");
+  }
+
+  const slotQuery = new QueryBuilder(prisma.customTurfSlot as any, query, {
+    searchableFields: ["sportType"],
+    filterableFields: ["status", "isBooked"],
+  })
+    .search()
+    .filter()
+    .sort()
+    .paginate()
+    .where({
+      playerId: player.id,
+      isDeleted: false,
+    })
+    .include({ turf: true });
+
+  const result = await slotQuery.execute();
+  return result;
+};
+
 const getCustomSlotsByPlayer = async (userId: string, turfId: string, query: IQueryParams) => {
   const player = await prisma.player.findUnique({
     where: { userId },
@@ -301,6 +328,7 @@ export const TurfSlotsService = {
   createCustomTurfSlot,
   getRegularSlotsByTurf,
   getAvailableSlots,
+  getAllCustomSlotsByPlayer,
   getCustomSlotsByPlayer,
   deleteTurfSlot,
   bulkCreateTurfSlots,

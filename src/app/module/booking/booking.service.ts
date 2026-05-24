@@ -239,6 +239,7 @@ const makePaymentForCustomSlot = async (userId: string, bookingId: string) => {
     include: {
       turf: true,
       customSlot: true,
+      turfSlot: true,
     },
   });
 
@@ -253,20 +254,6 @@ const makePaymentForCustomSlot = async (userId: string, bookingId: string) => {
     );
   }
 
-  if (!booking.customSlot) {
-    throw new AppError(
-      status.BAD_REQUEST,
-      "This booking does not have a custom slot!",
-    );
-  }
-
-  if (booking.customSlot.status !== CustomSlotStatus.ACCEPTED) {
-    throw new AppError(
-      status.BAD_REQUEST,
-      "Custom slot must be accepted by the owner before payment!",
-    );
-  }
-
   if (booking.status !== BookingStatus.PENDING) {
     throw new AppError(
       status.BAD_REQUEST,
@@ -278,7 +265,27 @@ const makePaymentForCustomSlot = async (userId: string, bookingId: string) => {
     throw new AppError(status.BAD_REQUEST, "This booking is already paid!");
   }
 
-  const bookingPrice = booking.customSlot.price as number;
+  let bookingPrice: number;
+  let productLabel: string;
+
+  if (booking.customSlot) {
+    if (booking.customSlot.status !== CustomSlotStatus.ACCEPTED) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        "Custom slot must be accepted by the owner before payment!",
+      );
+    }
+    bookingPrice = booking.customSlot.price as number;
+    productLabel = `${booking.turf.name} on ${booking.date.toDateString()} (Custom Slot)`;
+  } else if (booking.turfSlotId && booking.turfSlot) {
+    bookingPrice = booking.turfSlot.price as number;
+    productLabel = `${booking.turf.name} on ${booking.date.toDateString()}`;
+  } else {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "This booking is not eligible for payment!",
+    );
+  }
 
   const existingPayment = await prisma.payment.findUnique({
     where: { bookingId },
@@ -299,7 +306,7 @@ const makePaymentForCustomSlot = async (userId: string, bookingId: string) => {
   let paymentUrl: string;
   try {
     paymentUrl = await createStripeCheckoutSession({
-      productName: `Booking for ${booking.turf.name} on ${booking.date.toDateString()} (Custom Slot)`,
+      productName: `Booking for ${productLabel}`,
       amount: paymentRecord.amount,
       bookingId: booking.id,
       paymentId: paymentRecord.id,
@@ -346,6 +353,7 @@ const getMyBookings = async (userId: string, query: IQueryParams) => {
       },
       customSlot: true,
       payment: true,
+      review: { select: { id: true } },
     });
 
   const result = await bookingQuery.execute();
