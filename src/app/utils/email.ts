@@ -8,7 +8,7 @@ import { envVars } from "../config/env";
 
 const transporter = nodemailer.createTransport({
   host: envVars.EMAIL_SENDER_SMTP_HOST,
-  secure: true,
+  secure: false,
   auth: {
     user: envVars.EMAIL_SENDER_SMTP_USER,
     pass: envVars.EMAIL_SENDER_SMTP_PASS,
