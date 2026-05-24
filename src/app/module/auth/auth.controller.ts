@@ -6,11 +6,12 @@ import status from "http-status";
 import { tokenUtils } from "../../utils/token";
 import { CookieUtils } from "../../utils/cookie";
 import AppError from "../../errorHelpers/AppError";
-import { sendEmail, EmailTemplate } from "../../utils/email";
+import { sendEmail } from "../../utils/email";
 import { envVars } from "../../config/env";
 import { auth } from "../../lib/auth";
-import ejs from "ejs";
-import path from "path";
+
+
+
 const registerPlayer = catchAsync(async (req: Request, res: Response) => {
   const result = await AuthService.registerPlayer(req.body);
   const { accessToken, refreshToken, betterAuthToken, user, player } = result;
@@ -130,7 +131,7 @@ const changePassword = catchAsync(async (req: Request, res: Response) => {
   sendEmail({
     to: result.user.email,
     subject: "Password Changed Successfully",
-    templateName: EmailTemplate.PasswordChanged,
+    templateName: "passwordChanged",
     templateData: {
       name: result.user.name,
     },
@@ -212,9 +213,12 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
   const betterAuthUrl = envVars.BETTER_AUTH_URL;
   const callbackURL = `${betterAuthUrl}/api/v1/auth/google/success?redirect=${encodedRedirectPath}`;
 
-  const templatePath = path.resolve(__dirname, "../../templates/google-login.ejs");
-  const html = await ejs.renderFile(templatePath, { callbackURL });
-  res.send(html);
+  res.render("googleRedirect", {
+    callbackURL: callbackURL,
+    betterAuthUrl: envVars.BETTER_AUTH_URL,
+  });
+
+  
 });
 
 
