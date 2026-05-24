@@ -11,11 +11,6 @@ import rateLimit from "express-rate-limit";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./app/lib/auth";
 import { PaymentController } from "./app/module/payment/payment.controller";
-import { seedSystemAdmin } from "./app/seed/systemAdmin.seed";
-
-void seedSystemAdmin().catch((err) =>
-  console.error("Failed to seed system admin:", err),
-);
 
 const app: Application = express();
 app.set("trust proxy", 1);

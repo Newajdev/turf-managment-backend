@@ -45,26 +45,10 @@ process.on("SIGINT", () => {
 
 process.on("uncaughtException", (error) => {
   console.log("Uncaught Exception Detected... Shutting down server", error);
-
-  if (server) {
-    server.close(() => {
-      process.exit(1);
-    });
-  }
-
-  process.exit(1);
 });
 
 process.on("unhandledRejection", (error) => {
   console.log("Unhandled Rejection Detected... Shutting down server", error);
-
-  if (server) {
-    server.close(() => {
-      process.exit(1);
-    });
-  }
-
-  process.exit(1);
 });
 
 bootstrap();
