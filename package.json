@@ -6,7 +6,7 @@
   "packageManager": "pnpm@10.33.0",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "prisma generate && tsc && copyfiles -u 1 src/templates/emails/*.ejs dist/templates/emails/",
+    "build": "prisma generate && tsc && copyfiles -u 2 \"src/app/templates/**/*.ejs\" dist/app/templates",
     "start": "node dist/server.js",
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
