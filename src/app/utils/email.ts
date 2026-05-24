@@ -19,9 +19,9 @@ const transporter = nodemailer.createTransport({
     user: envVars.EMAIL_SENDER_SMTP_USER,
     pass: envVars.EMAIL_SENDER_SMTP_PASS,
   },
-});
+} as any);
 // Log transporter configuration (mask password)
-console.log('Nodemailer transporter configured', {
+console.log("Nodemailer transporter configured", {
   host: envVars.EMAIL_SENDER_SMTP_HOST,
   port: envVars.EMAIL_SENDER_SMTP_PORT,
   secure: Number(envVars.EMAIL_SENDER_SMTP_PORT) === 465,
@@ -74,19 +74,16 @@ export const sendEmail = async ({
     // Verify transporter readiness and log any errors
     transporter.verify((error, success) => {
       if (error) {
-        console.error('SMTP VERIFY ERROR:', error);
+        console.error("SMTP VERIFY ERROR:", error);
       } else {
-        console.log('SMTP SERVER READY:', success);
+        console.log("SMTP SERVER READY:", success);
       }
     });
 
-    console.log('Email sent info:', info);
-
-   
+    console.log("Email sent info:", info);
   } catch (error: any) {
     console.error("FULL EMAIL ERROR:", error);
-    
-    throw new AppError(status.INTERNAL_SERVER_ERROR, "Failed to send email");
 
+    throw new AppError(status.INTERNAL_SERVER_ERROR, "Failed to send email");
   }
 };
