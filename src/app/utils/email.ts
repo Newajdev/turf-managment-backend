@@ -62,6 +62,15 @@ export const sendEmail = async ({
       subject,
       html,
     });
+
+transporter.verify((error) => {
+  if (error) {
+    console.error("SMTP Error:", error);
+  } else {
+    console.log("SMTP Server is ready");
+  }
+});
+
   } catch (error: any) {
     console.log("Email Sending Error", error.message);
     throw new AppError(status.INTERNAL_SERVER_ERROR, "Failed to send email");
