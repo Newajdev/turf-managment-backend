@@ -11,7 +11,7 @@ debugRouter.get("/email", async (req, res) => {
       to: envVars.ADMIN_EMAIL,
       subject: "Production Test Email",
       templateName: "emailVerificationOTP",
-      templateData: { otp: "123456", name: "Test" },
+      templateData: { otp: "123456", name: "Test", expiresIn: 2 },
     });
     res.json({ success: true, message: "Test email sent" });
   } catch (err) {
