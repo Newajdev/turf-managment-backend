@@ -8,12 +8,20 @@ import { envVars } from "../config/env";
 
 const transporter = nodemailer.createTransport({
   host: envVars.EMAIL_SENDER_SMTP_HOST,
-  secure: false,
+  // Use secure connection for ports 465 (SMTPS) otherwise false
+  secure: Number(envVars.EMAIL_SENDER_SMTP_PORT) === 465,
   auth: {
     user: envVars.EMAIL_SENDER_SMTP_USER,
     pass: envVars.EMAIL_SENDER_SMTP_PASS,
   },
   port: Number(envVars.EMAIL_SENDER_SMTP_PORT),
+});
+// Log transporter configuration (mask password)
+console.log('Nodemailer transporter configured', {
+  host: envVars.EMAIL_SENDER_SMTP_HOST,
+  port: envVars.EMAIL_SENDER_SMTP_PORT,
+  secure: Number(envVars.EMAIL_SENDER_SMTP_PORT) === 465,
+  user: envVars.EMAIL_SENDER_SMTP_USER,
 });
 
 interface SendEmailOptions {
@@ -58,15 +66,16 @@ export const sendEmail = async ({
       })),
     });
 
-    transporter.verify((error) => {
+    // Verify transporter readiness and log any errors
+    transporter.verify((error, success) => {
       if (error) {
-        console.error("SMTP VERIFY ERROR:", error);
+        console.error('SMTP VERIFY ERROR:', error);
       } else {
-        console.log("SMTP SERVER READY");
+        console.log('SMTP SERVER READY:', success);
       }
     });
 
-    console.log(info)
+    console.log('Email sent info:', info);
 
    
   } catch (error: any) {

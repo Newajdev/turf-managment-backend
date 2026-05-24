@@ -11,6 +11,7 @@ import rateLimit from "express-rate-limit";
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./app/lib/auth";
 import { PaymentController } from "./app/module/payment/payment.controller";
+import { DebugRoutes } from "./app/routes/debug";
 
 const app: Application = express();
 app.set("trust proxy", 1);
@@ -55,6 +56,8 @@ app.use("/api/v1/auth/forgot-password", authRateLimiter);
 app.use("/api/v1/auth/resend-verification-otp", authRateLimiter);
 
 app.use(express.json());
+
+app.use("/debug", DebugRoutes);
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 

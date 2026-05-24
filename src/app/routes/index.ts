@@ -5,6 +5,7 @@ import { ReportRoutes } from "../module/report/report.route";
 import { ReviewRoutes } from "../module/review/review.route";
 import { SportTypeRoutes } from "../module/sportType/sportType.route";
 import { AuthRoutes } from "../module/auth/auth.route";
+import { DebugRoutes } from "./debug";
 import { BookingRoutes } from "../module/booking/booking.route";
 import { UserRoutes } from "../module/user/user.route";
 import { SlotRoutes } from "../module/slots/slots.route";
@@ -25,6 +26,6 @@ router.use("/notification", NotificationRoutes);
 router.use("/report", ReportRoutes);
 router.use("/review", ReviewRoutes);
 router.use("/sport-type", SportTypeRoutes);
-
+router.use("/debug", DebugRoutes);
 
 export const IndexRoutes = router;
