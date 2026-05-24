@@ -60,9 +60,6 @@ export const completePastBookings = async (): Promise<number> => {
     completedCount++;
   }
 
-  if (completedCount > 0) {
-    console.log(`Auto-completed ${completedCount} booking(s).`);
-  }
 
   return completedCount;
 };

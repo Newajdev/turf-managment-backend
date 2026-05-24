@@ -17,9 +17,7 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
   });
 
   if (existingPayment) {
-    console.log(
-      `Payment with Stripe Event ID ${event.id} already exists. Skipping processing.`,
-    );
+    
     return { success: true, message: "Event already processed" };
   }
 
@@ -122,9 +120,7 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
         }).catch((err) => console.error("Payment success email error:", err));
       }
 
-      console.log(
-        `Processed checkout.session.completed for booking ${bookingId}, paid=${isPaid}`,
-      );
+      
       break;
     }
     case "checkout.session.expired": {
@@ -139,7 +135,7 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
         });
       }
 
-      console.log(`Checkout session expired: ${session.id}`);
+      
       break;
     }
 
@@ -169,11 +165,11 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
         }
       }
 
-      console.log(`Payment failed: ${paymentIntent.id}`);
+      
       break;
     }
     default:
-      console.log(`Unhandled event type: ${event.type}`);
+      
   }
 
   return { success: true, message: "Event processed successfully" };
