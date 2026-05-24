@@ -37,7 +37,7 @@ export const sendEmail = async ({
 }: SendEmailOptions) => {
   try {
     const templatePath = path.resolve(
-      process.cwd(),
+      __dirname,
       `src/app/templates/emails/${templateName}.ejs`,
     );
 
@@ -55,9 +55,22 @@ export const sendEmail = async ({
       })),
     });
 
-    console.log(`Email sent to ${to} : ${info.messageId}`);
+    transporter.verify((error) => {
+      if (error) {
+        console.error("SMTP VERIFY ERROR:", error);
+      } else {
+        console.log("SMTP SERVER READY");
+      }
+    });
+
+    console.log(info)
+
+   
   } catch (error: any) {
-    console.log("Email Sending Error", error.message);
-    throw new AppError(status.INTERNAL_SERVER_ERROR, "Failed to send email");
+    console.error("FULL EMAIL ERROR:", error);
+    // throw new AppError(status.INTERNAL_SERVER_ERROR, "Failed to send email");
+
+    console.error("FULL EMAIL ERROR:", error);
+    return;
   }
 };
