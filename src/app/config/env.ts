@@ -42,7 +42,8 @@ interface EnvConfig {
 }
 
 const loadEnvVariables = (): EnvConfig => {
-  const requiredVars = [
+  // Base required vars for the app (always needed)
+  const baseRequired = [
     "NODE_ENV",
     "PORT",
     "DATABASE_URL",
@@ -63,23 +64,31 @@ const loadEnvVariables = (): EnvConfig => {
     "CLOUDINARY_API_KEY",
     "CLOUDINARY_API_SECRET",
     "FRONTEND_URL",
-    "EMAIL_SENDER_SMTP_USER",
-    "EMAIL_SENDER_SMTP_PASS",
-    "EMAIL_SENDER_SMTP_HOST",
-    "EMAIL_SENDER_SMTP_PORT",
-    "EMAIL_SENDER_SMTP_FROM",
-    "EMAIL_SENDER_SMTP_SECURE",
-    "SENDGRID_API_KEY",
-    "EMAIL_FROM",
     "GOOGLE_CLIENT_ID",
     "GOOGLE_SECRET",
     "GOOGLE_CALLBACK_URL",
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
     "STRIPE_CURRENCY",
+    "SENDGRID_API_KEY",
+    "EMAIL_FROM",
   ];
 
-  requiredVars.forEach((v) => {
+  // If SendGrid is NOT configured, we fall back to SMTP for local dev.
+  const smtpFallback = !process.env.SENDGRID_API_KEY;
+  if (smtpFallback) {
+    baseRequired.push(
+      "EMAIL_SENDER_SMTP_USER",
+      "EMAIL_SENDER_SMTP_PASS",
+      "EMAIL_SENDER_SMTP_HOST",
+      "EMAIL_SENDER_SMTP_PORT",
+      "EMAIL_SENDER_SMTP_FROM",
+      "EMAIL_SENDER_SMTP_SECURE"
+    );
+  }
+
+  // Validate presence of all required variables
+  baseRequired.forEach((v) => {
     if (!process.env[v]) {
       throw new AppError(
         httpStatus.INTERNAL_SERVER_ERROR,
@@ -125,5 +134,6 @@ const loadEnvVariables = (): EnvConfig => {
     STRIPE_CURRENCY: (process.env.STRIPE_CURRENCY as string).toLowerCase(),
   };
 };
+
 
 export const envVars = loadEnvVariables();
