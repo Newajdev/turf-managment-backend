@@ -8,19 +8,24 @@ import { envVars } from "../config/env";
 
 const transporter = nodemailer.createTransport({
   host: envVars.EMAIL_SENDER_SMTP_HOST,
-  // Use secure connection for ports 465 (SMTPS) otherwise false
+  port: Number(envVars.EMAIL_SENDER_SMTP_PORT),
+  // Secure for port 465 (SMTPS), otherwise startTLS on port 587
   secure: Number(envVars.EMAIL_SENDER_SMTP_PORT) === 465,
+  // If not using SMTPS, ask the server to upgrade via STARTTLS
+  requireTLS: Number(envVars.EMAIL_SENDER_SMTP_PORT) !== 465,
+  // Force IPv4 to avoid IPv6 ENETUNREACH in some containers
+  family: 4,
   auth: {
     user: envVars.EMAIL_SENDER_SMTP_USER,
     pass: envVars.EMAIL_SENDER_SMTP_PASS,
   },
-  port: Number(envVars.EMAIL_SENDER_SMTP_PORT),
 });
 // Log transporter configuration (mask password)
 console.log('Nodemailer transporter configured', {
   host: envVars.EMAIL_SENDER_SMTP_HOST,
   port: envVars.EMAIL_SENDER_SMTP_PORT,
   secure: Number(envVars.EMAIL_SENDER_SMTP_PORT) === 465,
+  requireTLS: Number(envVars.EMAIL_SENDER_SMTP_PORT) !== 465,
   user: envVars.EMAIL_SENDER_SMTP_USER,
 });
 
