@@ -31,6 +31,7 @@ interface EnvConfig {
   EMAIL_SENDER_SMTP_HOST: string;
   EMAIL_SENDER_SMTP_PORT: string;
   EMAIL_SENDER_SMTP_FROM: string;
+  EMAIL_SENDER_SMTP_SECURE: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_SECRET: string;
   GOOGLE_CALLBACK_URL: string;
@@ -66,11 +67,12 @@ const loadEnvVariables = (): EnvConfig => {
     "EMAIL_SENDER_SMTP_HOST",
     "EMAIL_SENDER_SMTP_PORT",
     "EMAIL_SENDER_SMTP_FROM",
+    "EMAIL_SENDER_SMTP_SECURE",
     "GOOGLE_CLIENT_ID",
     "GOOGLE_SECRET",
     "GOOGLE_CALLBACK_URL",
     "STRIPE_SECRET_KEY",
-    "STRIPE_WEBHOOK_SECRET"
+    "STRIPE_WEBHOOK_SECRET",
   ];
 
   requireEnvVariable.forEach((variable) => {
@@ -107,6 +109,7 @@ const loadEnvVariables = (): EnvConfig => {
     EMAIL_SENDER_SMTP_HOST: process.env.EMAIL_SENDER_SMTP_HOST as string,
     EMAIL_SENDER_SMTP_PORT: process.env.EMAIL_SENDER_SMTP_PORT as string,
     EMAIL_SENDER_SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM as string,
+    EMAIL_SENDER_SMTP_SECURE: process.env.EMAIL_SENDER_SMTP_FROM as string,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
     GOOGLE_SECRET: process.env.GOOGLE_SECRET as string,
     GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL as string,
