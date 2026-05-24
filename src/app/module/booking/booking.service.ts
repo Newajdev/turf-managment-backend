@@ -14,7 +14,7 @@ import {
 import { v7 as uuidv7 } from "uuid";
 import { NotificationService } from "../notification/notification.service";
 import { isTimeOverlap } from "../../utils/calculateTime";
-import { sendEmail, EmailTemplate } from "../../utils/email";
+import { sendEmail} from "../../utils/email";
 import { createStripeCheckoutSession } from "../../utils/stripeCheckout.util";
 
 const BLOCKING_BOOKING_STATUSES = [
@@ -651,7 +651,7 @@ const acceptBooking = async (userId: string, bookingId: string) => {
     await sendEmail({
       to: booking.player.email,
       subject: "Booking Approved - Turf Management",
-      templateName: EmailTemplate.BookingConfirmation,
+      templateName: "booking-confirmation",
       templateData: {
         playerName: booking.player.name,
         turfName: booking.turf.name,

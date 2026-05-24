@@ -6,7 +6,7 @@ import {
   NotificationType,
   PaymentStatus,
 } from "../../../generated/prisma/enums";
-import { sendEmail, EmailTemplate } from "../../utils/email";
+import { sendEmail } from "../../utils/email";
 import { NotificationService } from "../notification/notification.service";
 
 const handleStripeWebhookEvent = async (event: Stripe.Event) => {
@@ -93,7 +93,7 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
         await sendEmail({
           to: booking.player.email,
           subject: "Booking Confirmed - Turf Management",
-          templateName: EmailTemplate.BookingConfirmation,
+          templateName: "booking-Confirmation",
           templateData: {
             playerName: booking.player.name,
             turfName: booking.turf.name,
@@ -110,7 +110,7 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
         await sendEmail({
           to: booking.player.email,
           subject: "Payment Success - Turf Management",
-          templateName: EmailTemplate.PaymentSuccess,
+          templateName: "payment-success",
           templateData: {
             playerName: booking.player.name,
             transactionId: event.id,
