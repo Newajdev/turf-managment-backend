@@ -1,20 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import ejs from "ejs";
 import status from "http-status";
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 import path from "path";
 import AppError from "../errorHelpers/AppError";
 import { envVars } from "../config/env";
 
-const transporter = nodemailer.createTransport({
-  host: envVars.EMAIL_SENDER_SMTP_HOST,
-  secure: envVars.EMAIL_SENDER_SMTP_SECURE,
-  auth: {
-    user: envVars.EMAIL_SENDER_SMTP_USER,
-    pass: envVars.EMAIL_SENDER_SMTP_PASS,
-  },
-  port: envVars.EMAIL_SENDER_SMTP_PORT,
-}as any);
+sgMail.setApiKey(envVars.SENDGRID_API_KEY!);
 
 interface SendEmailOptions {
   to: string;
@@ -37,42 +29,37 @@ export const sendEmail = async ({
 }: SendEmailOptions) => {
   try {
     const templatePath = path.join(
-  __dirname,
-  "..",
-  "templates",
-  "emails",
-  `${templateName}.ejs`,
-);
+      __dirname,
+      "..",
+      "templates",
+      "emails",
+      `${templateName}.ejs`,
+    );
 
     const html = await ejs.renderFile(templatePath, templateData);
 
-    const info = await transporter.sendMail({
-      from: envVars.EMAIL_SENDER_SMTP_FROM,
-      to: to,
-      subject: subject,
-      html: html,
-      attachments: attachments?.map((attachment) => ({
-        filename: attachment.filename,
-        content: attachment.content,
-        contentType: attachment.contentType,
-      })),
-    });
+    const msg: any = {
+      to,
+      from: envVars.EMAIL_FROM,
+      subject,
+      html,
+    };
 
-    transporter.verify((error) => {
-      if (error) {
-        console.error("SMTP VERIFY ERROR:", error);
-      } else {
-        console.log("SMTP SERVER READY");
-      }
-    });
+    if (attachments && attachments.length) {
+      msg.attachments = attachments.map((a) => ({
+        content: Buffer.isBuffer(a.content)
+          ? a.content.toString("base64")
+          : Buffer.from(a.content as string).toString("base64"),
+        filename: a.filename,
+        type: a.contentType,
+        disposition: "attachment",
+      }));
+    }
 
-    console.log(info)
-
-   
+    const [response] = await sgMail.send(msg);
+    console.log("SendGrid response", response);
   } catch (error: any) {
     console.error("FULL EMAIL ERROR:", error);
-    
     throw new AppError(status.INTERNAL_SERVER_ERROR, "Failed to send email");
-
   }
 };

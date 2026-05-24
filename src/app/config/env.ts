@@ -4,7 +4,6 @@ import httpStatus from "http-status";
 
 dotenv.config();
 
-
 interface EnvConfig {
   NODE_ENV: string;
   PORT: string;
@@ -32,6 +31,8 @@ interface EnvConfig {
   EMAIL_SENDER_SMTP_PORT: string;
   EMAIL_SENDER_SMTP_FROM: string;
   EMAIL_SENDER_SMTP_SECURE: string;
+  SENDGRID_API_KEY: string;
+  EMAIL_FROM: string;
   GOOGLE_CLIENT_ID: string;
   GOOGLE_SECRET: string;
   GOOGLE_CALLBACK_URL: string;
@@ -41,7 +42,7 @@ interface EnvConfig {
 }
 
 const loadEnvVariables = (): EnvConfig => {
-  const requireEnvVariable = [
+  const requiredVars = [
     "NODE_ENV",
     "PORT",
     "DATABASE_URL",
@@ -68,16 +69,22 @@ const loadEnvVariables = (): EnvConfig => {
     "EMAIL_SENDER_SMTP_PORT",
     "EMAIL_SENDER_SMTP_FROM",
     "EMAIL_SENDER_SMTP_SECURE",
+    "SENDGRID_API_KEY",
+    "EMAIL_FROM",
     "GOOGLE_CLIENT_ID",
     "GOOGLE_SECRET",
     "GOOGLE_CALLBACK_URL",
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_CURRENCY",
   ];
 
-  requireEnvVariable.forEach((variable) => {
-    if (!process.env[variable]) {
-      throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, `Environment variable ${variable} is required but not set in .env file.`);
+  requiredVars.forEach((v) => {
+    if (!process.env[v]) {
+      throw new AppError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        `Environment variable ${v} is required but not set in .env file.`
+      );
     }
   });
 
@@ -91,10 +98,8 @@ const loadEnvVariables = (): EnvConfig => {
     REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET as string,
     ACCESS_TOKEN_EXPIRES_IN: process.env.ACCESS_TOKEN_EXPIRES_IN as string,
     REFRESH_TOKEN_EXPIRES_IN: process.env.REFRESH_TOKEN_EXPIRES_IN as string,
-    BETTER_AUTH_SESSION_TOKEN_EXPIRES_IN: process.env
-      .BETTER_AUTH_SESSION_TOKEN_EXPIRES_IN as string,
-    BETTER_AUTH_SESSION_TOKEN_UPDATE_AGE: process.env
-      .BETTER_AUTH_SESSION_TOKEN_UPDATE_AGE as string,
+    BETTER_AUTH_SESSION_TOKEN_EXPIRES_IN: process.env.BETTER_AUTH_SESSION_TOKEN_EXPIRES_IN as string,
+    BETTER_AUTH_SESSION_TOKEN_UPDATE_AGE: process.env.BETTER_AUTH_SESSION_TOKEN_UPDATE_AGE as string,
     ADMIN_NAME: process.env.ADMIN_NAME as string,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL as string,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD as string,
@@ -109,7 +114,9 @@ const loadEnvVariables = (): EnvConfig => {
     EMAIL_SENDER_SMTP_HOST: process.env.EMAIL_SENDER_SMTP_HOST as string,
     EMAIL_SENDER_SMTP_PORT: process.env.EMAIL_SENDER_SMTP_PORT as string,
     EMAIL_SENDER_SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM as string,
-    EMAIL_SENDER_SMTP_SECURE: process.env.EMAIL_SENDER_SMTP_FROM as string,
+    EMAIL_SENDER_SMTP_SECURE: process.env.EMAIL_SENDER_SMTP_SECURE as string,
+    SENDGRID_API_KEY: process.env.SENDGRID_API_KEY as string,
+    EMAIL_FROM: (process.env.EMAIL_FROM || process.env.EMAIL_SENDER_SMTP_FROM) as string,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
     GOOGLE_SECRET: process.env.GOOGLE_SECRET as string,
     GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL as string,
