@@ -3,9 +3,7 @@
     "rootDir": "./src",
     "outDir": "./dist",
 
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-
+    "module": "commonjs",
     "target": "ES2022",
 
     "lib": ["ES2022"],
@@ -15,14 +13,11 @@
 
     "strict": true,
 
-    "skipLibCheck": true,
-
     "esModuleInterop": true,
+
     "isolatedModules": true,
 
-    "resolveJsonModule": true,
-
-    "allowSyntheticDefaultImports": true
+    "skipLibCheck": true
   },
 
   "include": ["src"],
