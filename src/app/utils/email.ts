@@ -49,7 +49,11 @@ export const sendEmail = async ({
     }
 
     // Render the EJS template file
-    const templatePath = path.resolve(__dirname, "../../templates/emails", `${templateName}.ejs`);
+    const templatePath = path.resolve(
+      __dirname,
+      "../templates/emails",
+      `${templateName}.ejs`,
+    );
     const html = await ejs.renderFile(templatePath, templateData);
 
     await transporter.sendMail({
