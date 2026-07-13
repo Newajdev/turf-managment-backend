@@ -17,6 +17,8 @@ model Player {
   bookings Booking[]
   reviews  Review[]
   reports  Report[]
+  blogComments BlogComment[]
+  blogReactions BlogReact[]
 
   @@index([email], map: "idx_player_email")
   @@index([isDeleted], map: "idx_player_isDeleted")

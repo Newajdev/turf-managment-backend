@@ -34,6 +34,26 @@ const getAdminAnalytics = async () => {
         }, {} as Record<string, number>)
     };
 };
+const getState = async () => {
+    const [totalPlayers, totalTurfOwners, totalTurfs, bookingsByStatus] = await Promise.all([
+        prisma.player.count(),
+        prisma.turfOwner.count(),
+        prisma.turf.count(),
+        prisma.booking.groupBy({
+            by: ['status'],
+            _count: { _all: true }
+        })
+    ]);
+
+    return {
+        totalUsers: totalPlayers + totalTurfOwners,
+        totalTurfs: totalTurfs,
+        bookings: bookingsByStatus.reduce((acc, curr) => {
+            acc[curr.status.toLowerCase()] = curr._count._all;
+            return acc;
+        }, {} as Record<string, number>)
+    };
+};
 
 const getOwnerAnalytics = async (userId: string) => {
     const owner = await prisma.turfOwner.findUnique({
@@ -124,6 +144,7 @@ const getPlayerAnalytics = async (userId: string) => {
 
 export const AnalyticsService = {
     getAdminAnalytics,
+    getState,
     getOwnerAnalytics,
     getPlayerAnalytics
 };

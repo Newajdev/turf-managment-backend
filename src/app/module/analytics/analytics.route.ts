@@ -10,6 +10,10 @@ router.get(
   checkAuth(Role.SYSTEM_ADMIN),
   AnalyticsController.getAdminAnalytics,
 );
+router.get(
+  "/public-state",
+  AnalyticsController.getState,
+);
 
 router.get(
   "/owner",

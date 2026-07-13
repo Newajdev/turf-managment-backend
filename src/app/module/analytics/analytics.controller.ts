@@ -14,6 +14,16 @@ const getAdminAnalytics = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getState = catchAsync(async (req: Request, res: Response) => {
+  const result = await AnalyticsService.getState();
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Admin analytics retrieved successfully",
+    data: result,
+  });
+});
 
 const getOwnerAnalytics = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.user;
@@ -41,6 +51,7 @@ const getPlayerAnalytics = catchAsync(async (req: Request, res: Response) => {
 
 export const AnalyticsController = {
   getAdminAnalytics,
+  getState,
   getOwnerAnalytics,
   getPlayerAnalytics,
 };

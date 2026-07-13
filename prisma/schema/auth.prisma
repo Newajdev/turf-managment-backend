@@ -19,6 +19,7 @@ model User {
   turfOwner   TurfOwner?
   systemAdmin SystemAdmin?
   notifications Notification[]
+  blogs       Blog[]
 
   @@map("user")
 }

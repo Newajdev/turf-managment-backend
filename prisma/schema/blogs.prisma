@@ -1,0 +1,56 @@
+model Blog {
+  id           String   @id @default(cuid())
+  title        String
+  excerpt      String
+  content      String   @db.Text
+  image        String
+  category     String
+  readingTime  String
+  
+  authorId     String
+  author       User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  comments     BlogComment[]
+  reactions    BlogReact[]
+
+  isDeleted    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([authorId], map: "idx_blog_authorId")
+  @@index([isDeleted], map: "idx_blog_isDeleted")
+  @@map("blogs")
+}
+
+model BlogComment {
+  id        String   @id @default(uuid(7))
+  comment   String
+  blogId    String
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([blogId], map: "idx_comment_blogId")
+  @@index([playerId], map: "idx_comment_playerId")
+  @@map("blog_comments")
+}
+
+model BlogReact {
+  id        String   @id @default(uuid(7))
+  type      String   @default("LIKE")
+  blogId    String
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  playerId  String
+  player    Player   @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([blogId, playerId], name: "blog_player_react_unique")
+  @@index([blogId], map: "idx_react_blogId")
+  @@index([playerId], map: "idx_react_playerId")
+  @@map("blog_reactions")
+}

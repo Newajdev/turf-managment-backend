@@ -5,13 +5,13 @@ import { ReportRoutes } from "../module/report/report.route";
 import { ReviewRoutes } from "../module/review/review.route";
 import { SportTypeRoutes } from "../module/sportType/sportType.route";
 import { AuthRoutes } from "../module/auth/auth.route";
-import { DebugRoutes } from "./debug";
 import { BookingRoutes } from "../module/booking/booking.route";
 import { UserRoutes } from "../module/user/user.route";
 import { SlotRoutes } from "../module/slots/slots.route";
 import { TurfRoutes } from "../module/turf/turf.route";
 import { TurfSlotsRoutes } from "../module/turfSlots/turfSlots.route";
-
+import { BlogRoutes } from "../module/blogs/blogs.route";
+import { ContactRoutes } from "../module/contact/contact.route";
 
 const router = Router();
 
@@ -26,6 +26,7 @@ router.use("/notification", NotificationRoutes);
 router.use("/report", ReportRoutes);
 router.use("/review", ReviewRoutes);
 router.use("/sport-type", SportTypeRoutes);
-router.use("/debug", DebugRoutes);
+router.use("/blogs", BlogRoutes);
+router.use("/contact", ContactRoutes);
 
 export const IndexRoutes = router;
