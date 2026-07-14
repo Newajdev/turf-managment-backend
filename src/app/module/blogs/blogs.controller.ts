@@ -3,47 +3,7 @@ import { catchAsync } from "../../shared/catchAsync";
 import { sendResponse } from "../../shared/sendResponse";
 import { BlogService } from "./blogs.service";
 import status from "http-status";
-import { prisma } from "../../lib/prisma";
-import { jwtUtils } from "../../utils/jwt";
-import { envVars } from "../../config/env";
-import { CookieUtils } from "../../utils/cookie";
 
-const getOptionalUserId = async (req: Request): Promise<string | undefined> => {
-  try {
-    const sessionToken = CookieUtils.getCookie(req, "better-auth.session_token");
-    let accessToken = CookieUtils.getCookie(req, "accessToken");
-
-    const authHeader = req.headers.authorization;
-    if (!accessToken && authHeader && authHeader.startsWith("Bearer ")) {
-      accessToken = authHeader.split(" ")[1];
-    }
-
-    if (sessionToken && sessionToken !== "undefined") {
-      const sessionExists = await prisma.session.findFirst({
-        where: {
-          token: sessionToken,
-          expiresAt: { gt: new Date() },
-        },
-      });
-      if (sessionExists) {
-        return sessionExists.userId;
-      }
-    }
-
-    if (accessToken && accessToken !== "undefined") {
-      const verifiedToken = jwtUtils.verifyToken(
-        accessToken,
-        envVars.ACCESS_TOKEN_SECRET,
-      );
-      if (verifiedToken.success && verifiedToken.data) {
-        return verifiedToken.data.userId;
-      }
-    }
-  } catch (error) {
-    // Ignore and return undefined
-  }
-  return undefined;
-};
 
 const createBlog = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.user;
@@ -89,8 +49,7 @@ const getMyBlogs = catchAsync(async (req: Request, res: Response) => {
 
 const getSingleBlog = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id as string;
-  const userId = await getOptionalUserId(req);
-  const result = await BlogService.getSingleBlog(id, userId);
+  const result = await BlogService.getSingleBlog(id);
 
   sendResponse(res, {
     httpStatusCode: status.OK,

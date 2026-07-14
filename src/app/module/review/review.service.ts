@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
 import { status } from "http-status";
@@ -109,6 +110,25 @@ const getTurfReviews = async (turfId: string, query: IQueryParams) => {
   const result = await reviewQuery.execute();
   return result;
 };
+const getAllReviews = async () => {
+  
+  const result = await prisma.review.findMany({
+    select: {
+      id: true,
+      rating: true,
+      comment: true,
+      createdAt: true,
+      player: {
+        select: {
+          name: true,
+          profilePhoto: true,
+        },
+      },
+    },
+  });
+
+  return result;
+};
 
 const getMyReviews = async (userId: string, query: IQueryParams) => {
   const player = await prisma.player.findUnique({
@@ -202,6 +222,7 @@ const deleteReview = async (userId: string, id: string) => {
 export const ReviewService = {
   createReview,
   getTurfReviews,
+  getAllReviews,
   getMyReviews,
   updateReview,
   deleteReview,

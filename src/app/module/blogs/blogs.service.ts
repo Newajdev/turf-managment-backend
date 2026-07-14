@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errorHelpers/AppError";
 import status from "http-status";
@@ -100,7 +101,7 @@ const getMyBlogs = async (userId: string, role: string, query: IQueryParams) => 
   return result;
 };
 
-const getSingleBlog = async (id: string, userId?: string) => {
+const getSingleBlog = async (id: string) => {
   const blog = await prisma.blog.findFirst({
     where: { id, isDeleted: false },
     include: {
@@ -150,26 +151,10 @@ const getSingleBlog = async (id: string, userId?: string) => {
     throw new AppError(status.NOT_FOUND, "Blog insight not found!");
   }
 
-  let hasReacted = false;
-  let activeReactionType: string | null = null;
 
-  if (userId) {
-    const player = await prisma.player.findUnique({
-      where: { userId },
-    });
-    if (player) {
-      const userReact = blog.reactions.find((r) => r.playerId === player.id);
-      if (userReact) {
-        hasReacted = true;
-        activeReactionType = userReact.type;
-      }
-    }
-  }
 
   return {
     ...blog,
-    hasReacted,
-    activeReactionType,
   };
 };
 
@@ -260,6 +245,7 @@ const addComment = async (blogId: string, userId: string, commentText: string) =
           id: true,
           name: true,
           profilePhoto: true,
+          userId: true,
         },
       },
     },

@@ -28,6 +28,17 @@ const getTurfReviews = catchAsync(async (req: Request, res: Response) => {
     meta: result.meta,
   });
 });
+const getAllReviews = catchAsync(async (req: Request, res: Response) => {
+  
+  const result = await ReviewService.getAllReviews();
+
+  sendResponse(res, {
+    httpStatusCode: status.OK,
+    success: true,
+    message: "Turf reviews retrieved successfully",
+    data: result,
+  });
+});
 
 const getMyReviews = catchAsync(async (req: Request, res: Response) => {
   const { userId } = req.user;
@@ -70,6 +81,7 @@ const deleteReview = catchAsync(async (req: Request, res: Response) => {
 
 export const ReviewController = {
   createReview,
+  getAllReviews,
   getTurfReviews,
   getMyReviews,
   updateReview,

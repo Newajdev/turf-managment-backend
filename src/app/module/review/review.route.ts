@@ -15,6 +15,7 @@ router.post(
 );
 
 router.get("/turf/:turfId", ReviewController.getTurfReviews); // Public
+router.get("/all", ReviewController.getAllReviews); // Public
 
 router.get("/my-reviews", checkAuth(Role.PLAYER), ReviewController.getMyReviews);
 
