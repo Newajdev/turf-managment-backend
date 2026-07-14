@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   IQueryConfig,
   IQueryParams,
@@ -39,7 +40,7 @@ export class QueryBuilder<T, TWhereInput = Record<string, unknown>, TInclude = R
     };
   }
 
-  // Tries to handle nested fields up to 3 levels: "relation.nested.field"
+  
   search(): this {
     const { searchTerm } = this.queryParams;
     const { searchableFields } = this.config;
@@ -123,7 +124,7 @@ export class QueryBuilder<T, TWhereInput = Record<string, unknown>, TInclude = R
 
       const isAllowedField = !filterableFields || filterableFields.length === 0 || filterableFields.includes(key);
 
-      // Handle nested filters: "user.name=John" => { user: { name: 'John' } }
+      
       if (key.includes(".")) {
         const parts = key.split(".");
 

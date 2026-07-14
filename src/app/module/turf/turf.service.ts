@@ -51,8 +51,13 @@ const createTurf = async (userId: string, payload: ITurfCreatePayload) => {
 
 const getAllTurfs = async (query: IQueryParams) => {
   const turfQuery = new QueryBuilder(prisma.turf as any, query, {
-    searchableFields: ["name", "address", "sportTypes.some.name"],
-    filterableFields: ["turfStatus", "hourlyRate", "sportTypes.id", "sportTypes.some.name"],
+    searchableFields: ["name", "address", "sportTypes.some.title"],
+    filterableFields: [
+      "turfStatus",
+      "hourlyRate",
+      "sportTypes.id",
+      "sportTypes.some.name",
+    ],
   })
     .search()
     .filter()
